@@ -4,6 +4,7 @@ node_modules/
 # Build output and tool caches
 dist/
 .vite/
+tmp/
 
 # Local environment files
 .env
