@@ -130,7 +130,6 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'frameOpacity', label: '枠の不透明度', min: 0.02, max: 1, step: 0.01 },
 	],
 	'background-settings': [
-		{ kind: 'number', key: 'backgroundParticleCount', label: '背景粒子数', min: 0, max: 500, step: 10 },
 		{ kind: 'color', key: 'backgroundTopColor', label: '背景上部色' },
 		{ kind: 'color', key: 'backgroundBottomColor', label: '背景下部色' },
 	],

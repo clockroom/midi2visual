@@ -114,7 +114,7 @@ Three.jsへ依存しません。
 - Renderer、Scene、Camera
 - Note MeshとGlow、ノート専用Fog補正Shader
 - 小節枠、拍枠、発音平面
-- 背景、Fog、粒子、Light
+- 背景、Fog、Light
 - 設定変更時の再構築
 - 球面オービットカメラ
 - ウィンドウリサイズ

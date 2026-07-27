@@ -37,7 +37,6 @@ export const defaultSettings: AppSettings = {
 	levelMeterOpacity: 0.8,
 	levelMeterMaxHeightPercent: 25,
 	levelMeterWidthPercent: 70,
-	backgroundParticleCount: 120,
 	backgroundTopColor: '#101b32',
 	backgroundBottomColor: '#02040b',
 }
@@ -60,9 +59,12 @@ export function loadSettings(): AppSettings {
 			throw new Error('Saved settings are not an object.')
 		}
 
+		const savedSettings = { ...parsed }
+		delete savedSettings.backgroundParticleCount
+
 		return {
 			...structuredClone(defaultSettings),
-			...parsed,
+			...savedSettings,
 		} as AppSettings
 	} catch (error) {
 		console.warn('Saved settings could not be read. Defaults are used.', error)

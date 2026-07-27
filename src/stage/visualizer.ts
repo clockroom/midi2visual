@@ -28,11 +28,9 @@ export class MidiVisualizer {
 	private readonly framesGroup = new THREE.Group()
 	private readonly playheadGroup = new THREE.Group()
 	private readonly effectsGroup = new THREE.Group()
-	private readonly particlesGroup = new THREE.Group()
 	private readonly noteObjects: NoteObject[] = []
 	private readonly impactEffects: NoteImpactEffects
 	private readonly levelMeters: TrackLevelMeters
-	private particlePoints: THREE.Points | null = null
 	private model: MidiModel | null = null
 	private settings: AppSettings
 	private previousEffectSongSeconds: number | null = null
@@ -72,7 +70,6 @@ export class MidiVisualizer {
 			this.playheadGroup,
 			this.levelMeters.group,
 			this.effectsGroup,
-			this.particlesGroup,
 		)
 		this.scene.add(new THREE.AmbientLight(0xacc8ff, 0.5))
 
@@ -99,7 +96,6 @@ export class MidiVisualizer {
 		this.buildNotes()
 		this.buildFrames()
 		this.buildPlayhead()
-		this.buildParticles()
 		this.updateCamera(true)
 	}
 
@@ -139,15 +135,6 @@ export class MidiVisualizer {
 			this.clearGroup(this.playheadGroup)
 			this.buildFrames()
 			this.buildPlayhead()
-		}
-
-		if (
-			previous.backgroundParticleCount !== settings.backgroundParticleCount ||
-			previous.lookAheadSeconds !== settings.lookAheadSeconds ||
-			previous.timeUnitsPerSecond !== settings.timeUnitsPerSecond ||
-			previous.trackSpacing !== settings.trackSpacing
-		) {
-			this.buildParticles()
 		}
 
 		this.applyBackground()
@@ -216,7 +203,6 @@ export class MidiVisualizer {
 		this.framesGroup.position.z = timeOffset
 		this.updateNotes(songSeconds)
 		this.updateNoteOnReactions(songSeconds)
-		this.updateParticles(songSeconds)
 		this.renderer.render(this.scene, this.camera)
 	}
 
@@ -394,38 +380,6 @@ export class MidiVisualizer {
 		return new THREE.LineLoop(geometry, material)
 	}
 
-	private buildParticles(): void {
-		this.clearGroup(this.particlesGroup)
-		this.particlePoints = null
-
-		if (this.settings.backgroundParticleCount <= 0) {
-			return
-		}
-
-		const count = Math.round(this.settings.backgroundParticleCount)
-		const positions = new Float32Array(count * 3)
-		const depth = Math.max(30, this.settings.lookAheadSeconds * this.settings.timeUnitsPerSecond * 1.5)
-
-		for (let index = 0; index < count; index += 1) {
-			positions[index * 3] = this.centerX + (Math.random() - 0.5) * this.worldWidth * 2.4
-			positions[index * 3 + 1] = this.centerY + (Math.random() - 0.5) * this.worldHeight * 2.2
-			positions[index * 3 + 2] = -Math.random() * depth
-		}
-
-		const geometry = new THREE.BufferGeometry()
-		geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3))
-		const material = new THREE.PointsMaterial({
-			color: 0x90bfff,
-			size: 0.045,
-			transparent: true,
-			opacity: 0.28,
-			blending: THREE.AdditiveBlending,
-			depthWrite: false,
-		})
-		this.particlePoints = new THREE.Points(geometry, material)
-		this.particlesGroup.add(this.particlePoints)
-	}
-
 	private updateNotes(songSeconds: number): void {
 		const visiblePast = this.settings.noteAfterglowSeconds + 0.2
 		const visibleFuture = this.settings.lookAheadSeconds + 2
@@ -548,17 +502,6 @@ export class MidiVisualizer {
 		}
 
 		return low
-	}
-
-	private updateParticles(songSeconds: number): void {
-		if (!this.particlePoints) {
-			return
-		}
-
-		const depth = Math.max(30, this.settings.lookAheadSeconds * this.settings.timeUnitsPerSecond * 1.5)
-		this.particlePoints.position.z =
-			(songSeconds * this.settings.timeUnitsPerSecond * 0.16) % depth
-		this.particlePoints.rotation.z = songSeconds * 0.002
 	}
 
 	private updateCamera(resetOrbit: boolean): void {

@@ -32,7 +32,6 @@ export interface AppSettings {
 	levelMeterOpacity: number
 	levelMeterMaxHeightPercent: number
 	levelMeterWidthPercent: number
-	backgroundParticleCount: number
 	backgroundTopColor: string
 	backgroundBottomColor: string
 }

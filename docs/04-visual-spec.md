@@ -170,9 +170,6 @@ z = targetZ + horizontalDistance × cos(azimuth)
 
 - 上下2色の縦グラデーションをCanvasTextureとして生成する。
 - 下部色をFog色にも使用する。
-- 少量のPointsを背景粒子として配置する。
-- 粒子は曲の進行に合わせて緩やかにZ方向へ動かす。
-- 粒子はノートや枠より目立たせない。
 
 ## ライト
 
