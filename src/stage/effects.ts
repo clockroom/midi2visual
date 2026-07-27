@@ -355,8 +355,7 @@ export class NoteImpactEffects {
 			this.settings.customImpactScaleMode === 'expand'
 				? configuredStart
 				: configuredEnd
-		const minimumCoverScale =
-			Math.max(this.settings.noteWidth, this.settings.noteHeight) * 1.5
+		const minimumCoverScale = this.settings.noteSize * 1.5
 		const startScale = Math.max(requestedStartScale, minimumCoverScale)
 		const endScale =
 			this.settings.customImpactScaleMode === 'expand'

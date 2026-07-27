@@ -5,7 +5,8 @@
 - 設定型は`AppSettings`とする。
 - 初期値は`defaultSettings`へ埋め込む。
 - 保存先は`localStorage`とする。
-- 保存キーは`midi2visual.settings.v1`とする。
+- 保存キーは`midi2visual.settings.v2`とする。
+- `v1`以前の保存値は読み込まない。
 - 設定ページから映像ページへの通知は`BroadcastChannel`を使用する。
 - 保存済みオブジェクトを初期値へShallow Mergeする。
 - 保存値が不正なJSONまたはObject以外の場合は初期値へ戻す。
@@ -20,8 +21,7 @@
 | `lookAheadSeconds` | `8` | `2〜20`, step `0.5` | 描画対象と背景奥行きの基準時間 |
 | `timeUnitsPerSecond` | `4` | `1〜10`, step `0.1` | 1秒あたりのZ方向world unit |
 | `trackSpacing` | `1.5` | `0.6〜4`, step `0.05` | Track列のX間隔 |
-| `noteWidth` | `0.4` | `0.1〜1.5`, step `0.01` | ノート断面のX幅 |
-| `noteHeight` | `0.4` | `0.05〜0.8`, step `0.01` | ノート断面のY高。初期値ではX幅と同じ |
+| `noteSize` | `0.4` | `0.05〜1.5`, step `0.01` | 正方形ノート断面の一辺 |
 | `noteOpacity` | `0.82` | `0.1〜1`, step `0.01` | 発音前ノートの基本Opacity |
 | `noteGlowIntensity` | `1.7` | `0〜4`, step `0.05` | 発音中と残光のEmissive倍率 |
 | `noteAfterglowSeconds` | `0.3` | `0.05〜2`, step `0.05` | Note Off後の残光時間 |
@@ -50,14 +50,13 @@
 
 保存済み設定との互換性を保つため、単純な名称変更は行いません。名称を変更する場合は保存データの移行処理を追加してください。
 
-カスタム画像のNote On時のScaleには、ノート断面を覆うための最小値`max(noteWidth, noteHeight) × 1.5`を適用します。拡大モードで`customImpactStartScale`がこの値より小さい場合も、発音時だけは最小値を使用します。
+カスタム画像のNote On時のScaleには、ノート断面を覆うための最小値`noteSize × 1.5`を適用します。拡大モードで`customImpactStartScale`がこの値より小さい場合も、発音時だけは最小値を使用します。
 
 ## 設定変更時の再構築
 
 ### ノートを再構築する設定
 
-- `noteWidth`
-- `noteHeight`
+- `noteSize`
 - `noteOpacity`
 - `timeUnitsPerSecond`
 - `trackSpacing`

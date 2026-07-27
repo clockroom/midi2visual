@@ -117,8 +117,7 @@ export class MidiVisualizer {
 		}
 
 		const rebuildNotes =
-			previous.noteWidth !== settings.noteWidth ||
-			previous.noteHeight !== settings.noteHeight ||
+			previous.noteSize !== settings.noteSize ||
 			previous.noteOpacity !== settings.noteOpacity ||
 			previous.timeUnitsPerSecond !== settings.timeUnitsPerSecond ||
 			previous.trackSpacing !== settings.trackSpacing
@@ -246,7 +245,7 @@ export class MidiVisualizer {
 
 		this.worldWidth = Math.max(
 			2.4,
-			(this.model.trackCount - 1) * this.settings.trackSpacing + this.settings.noteWidth + 1.4,
+			(this.model.trackCount - 1) * this.settings.trackSpacing + this.settings.noteSize + 1.4,
 		)
 		this.worldHeight =
 			(this.model.maxPitch - this.model.minPitch + PITCH_PADDING * 2 + 1) * PITCH_STEP
@@ -268,8 +267,8 @@ export class MidiVisualizer {
 				(note.endSeconds - note.startSeconds) * this.settings.timeUnitsPerSecond,
 			)
 			const geometry = new THREE.BoxGeometry(
-				this.settings.noteWidth,
-				this.settings.noteHeight,
+				this.settings.noteSize,
+				this.settings.noteSize,
 				duration,
 			)
 			const material = new THREE.MeshStandardMaterial({

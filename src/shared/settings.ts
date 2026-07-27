@@ -1,6 +1,6 @@
 import type { AppSettings } from './types'
 
-export const SETTINGS_STORAGE_KEY = 'midi2visual.settings.v1'
+export const SETTINGS_STORAGE_KEY = 'midi2visual.settings.v2'
 export const SETTINGS_CHANNEL_NAME = 'midi2visual'
 
 export const defaultSettings: AppSettings = {
@@ -10,8 +10,7 @@ export const defaultSettings: AppSettings = {
 	lookAheadSeconds: 8,
 	timeUnitsPerSecond: 4,
 	trackSpacing: 1.5,
-	noteWidth: 0.4,
-	noteHeight: 0.4,
+	noteSize: 0.4,
 	noteOpacity: 0.82,
 	noteGlowIntensity: 1.7,
 	noteAfterglowSeconds: 0.3,

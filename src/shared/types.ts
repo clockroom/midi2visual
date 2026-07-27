@@ -5,8 +5,7 @@ export interface AppSettings {
 	lookAheadSeconds: number
 	timeUnitsPerSecond: number
 	trackSpacing: number
-	noteWidth: number
-	noteHeight: number
+	noteSize: number
 	noteOpacity: number
 	noteGlowIntensity: number
 	noteAfterglowSeconds: number

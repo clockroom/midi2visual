@@ -23,37 +23,29 @@ SMFのノートを、公開動画向けの3D映像として表示するMVPです
 	cd path/to/midi2visual
 	```
 
-2. Dockerイメージをビルドします。
-
-	```sh
-	docker compose build
-	```
-
-3. npm依存関係をインストールします。
+2. npm依存関係をインストールします。
 
 	```sh
 	docker compose run --rm npm install
 	```
 
-4. Vite開発サーバーを起動します。
+3. Vite開発サーバーを起動します。
 
 	```sh
-	docker compose up
+	docker compose up -d
 	```
 
-5. Firefoxで次のページを別タブまたは別ウィンドウとして開きます。
+4. Firefoxで次のページを別タブまたは別ウィンドウとして開きます。
 
 	- 映像: <http://localhost:5173/>
 	- 設定: <http://localhost:5173/control.html>
-
-終了するときは、`docker compose up`を実行したターミナルで`Ctrl + C`を押します。
 
 ## 2回目以降
 
 依存関係を変更していなければ、次のコマンドだけで起動できます。
 
 ```sh
-docker compose up
+docker compose up -d
 ```
 
 ## MIDIとカスタム画像の差し替え

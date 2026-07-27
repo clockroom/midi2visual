@@ -68,8 +68,7 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'timeUnitsPerSecond', label: '時間方向の速度', min: 1, max: 10, step: 0.1 },
 	],
 	'note-settings': [
-		{ kind: 'number', key: 'noteWidth', label: 'ノート幅', min: 0.1, max: 1.5, step: 0.01 },
-		{ kind: 'number', key: 'noteHeight', label: 'ノート高', min: 0.05, max: 0.8, step: 0.01 },
+		{ kind: 'number', key: 'noteSize', label: 'ノート断面サイズ', min: 0.05, max: 1.5, step: 0.01 },
 		{ kind: 'number', key: 'noteOpacity', label: 'ノート不透明度', min: 0.1, max: 1, step: 0.01 },
 		{ kind: 'number', key: 'noteGlowIntensity', label: '発音時の発光', min: 0, max: 4, step: 0.05 },
 		{ kind: 'number', key: 'noteAfterglowSeconds', label: '残光 (秒)', min: 0.05, max: 2, step: 0.05 },

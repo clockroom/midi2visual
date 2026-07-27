@@ -34,8 +34,7 @@
 ## ノート
 
 - 形状は直方体とする。
-- X方向の幅は`noteWidth`とする。
-- Y方向の高さは`noteHeight`とする。
+- X・Y方向の一辺は`noteSize`とし、断面を常に正方形とする。
 - Z方向の長さはノートDurationと`timeUnitsPerSecond`から算出する。
 - 極端に短いノートにも最小Z長`0.08`を与える。
 - Trackごとに固定パレットから色を割り当てる。
