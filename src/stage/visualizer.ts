@@ -8,6 +8,7 @@ interface NoteObject {
 	note: VisualNote
 	mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshStandardMaterial>
 	glow: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>
+	distanceVisibilityUniform: { value: number }
 }
 
 const PITCH_PADDING = 3
@@ -272,13 +273,41 @@ export class MidiVisualizer {
 			const material = new THREE.MeshStandardMaterial({
 				color,
 				emissive: color,
-				emissiveIntensity: 0.15,
+				emissiveIntensity: this.settings.noteBaseEmissiveIntensity,
 				transparent: true,
 				opacity: this.settings.noteOpacity,
 				roughness: 0.28,
 				metalness: 0.08,
 				depthWrite: false,
 			})
+			const distanceVisibilityUniform = {
+				value: this.settings.noteDistanceVisibility,
+			}
+			material.onBeforeCompile = (shader) => {
+				shader.uniforms.noteDistanceVisibility = distanceVisibilityUniform
+				shader.fragmentShader = shader.fragmentShader
+					.replace(
+						'#include <fog_pars_fragment>',
+						[
+							'#include <fog_pars_fragment>',
+							'uniform float noteDistanceVisibility;',
+						].join('\n'),
+					)
+					.replace(
+						'#include <fog_fragment>',
+						[
+							'vec3 noteColorBeforeFog = gl_FragColor.rgb;',
+							'#include <fog_fragment>',
+							'gl_FragColor.rgb = mix(',
+							'\tgl_FragColor.rgb,',
+							'\tnoteColorBeforeFog,',
+							'\tclamp(noteDistanceVisibility, 0.0, 1.0)',
+							');',
+						].join('\n'),
+					)
+			}
+			material.customProgramCacheKey = () =>
+				'midi2visual-note-distance-visibility-v1'
 			const mesh = new THREE.Mesh(geometry, material)
 			mesh.position.set(
 				note.trackIndex * this.settings.trackSpacing,
@@ -298,7 +327,12 @@ export class MidiVisualizer {
 			glow.visible = false
 			mesh.add(glow)
 			this.notesGroup.add(mesh)
-			this.noteObjects.push({ note, mesh, glow })
+			this.noteObjects.push({
+				note,
+				mesh,
+				glow,
+				distanceVisibilityUniform,
+			})
 		}
 	}
 
@@ -397,7 +431,8 @@ export class MidiVisualizer {
 		const visibleFuture = this.settings.lookAheadSeconds + 2
 
 		for (const object of this.noteObjects) {
-			const { note, mesh, glow } = object
+			const { note, mesh, glow, distanceVisibilityUniform } = object
+			distanceVisibilityUniform.value = this.settings.noteDistanceVisibility
 			const timeUntilStart = note.startSeconds - songSeconds
 			const timeSinceEnd = songSeconds - note.endSeconds
 			const active = songSeconds >= note.startSeconds && songSeconds <= note.endSeconds
@@ -412,18 +447,25 @@ export class MidiVisualizer {
 
 			if (active) {
 				const velocity = THREE.MathUtils.clamp(note.velocity, 0, 1)
-				mesh.material.emissiveIntensity = this.settings.noteGlowIntensity * (0.45 + velocity)
+				mesh.material.emissiveIntensity = Math.max(
+					this.settings.noteBaseEmissiveIntensity,
+					this.settings.noteGlowIntensity * (0.45 + velocity),
+				)
 				mesh.material.opacity = Math.min(1, this.settings.noteOpacity + 0.16)
 				glow.material.opacity = 0.1 + velocity * 0.25
 				glow.visible = true
 			} else if (afterglow) {
 				const fade = 1 - timeSinceEnd / this.settings.noteAfterglowSeconds
-				mesh.material.emissiveIntensity = this.settings.noteGlowIntensity * fade * 0.7
+				mesh.material.emissiveIntensity = Math.max(
+					this.settings.noteBaseEmissiveIntensity,
+					this.settings.noteGlowIntensity * fade * 0.7,
+				)
 				mesh.material.opacity = this.settings.noteOpacity * fade
 				glow.material.opacity = 0.2 * fade
 				glow.visible = true
 			} else {
-				mesh.material.emissiveIntensity = 0.15
+				mesh.material.emissiveIntensity =
+					this.settings.noteBaseEmissiveIntensity
 				mesh.material.opacity = this.settings.noteOpacity
 				glow.material.opacity = 0
 				glow.visible = false

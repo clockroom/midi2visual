@@ -23,6 +23,8 @@
 | `trackSpacing` | `1.5` | `0.6〜4`, step `0.05` | Track列のX間隔 |
 | `noteSize` | `0.4` | `0.05〜1.5`, step `0.01` | 正方形ノート断面の一辺 |
 | `noteOpacity` | `0.82` | `0.1〜1`, step `0.01` | 発音前ノートの基本Opacity |
+| `noteBaseEmissiveIntensity` | `0.55` | `0〜3`, step `0.05` | 未発音・発音中・残光中の最低Emissive強度 |
+| `noteDistanceVisibility` | `0.8` | `0〜1`, step `0.05` | ノートだけScene Fogの影響を弱める割合。`1`でFogなし |
 | `noteGlowIntensity` | `1.7` | `0〜4`, step `0.05` | 発音中と残光のEmissive倍率 |
 | `noteAfterglowSeconds` | `0.3` | `0.05〜2`, step `0.05` | Note Off後の残光時間 |
 | `cameraFov` | `48` | `25〜80`, step `1` | Perspective Cameraの垂直FOV |
@@ -85,6 +87,8 @@
 ### 即時更新
 
 - 背景色はTextureとFog色を再生成する。
+- ノート基本発光は各ノートMaterialのEmissive強度へ毎フレーム反映する。
+- 遠方ノート視認性は各ノートMaterialのShader Uniformへ毎フレーム反映する。
 - FOVとレイアウト変更後はカメラの基準距離を再計算する。
 - 現在のカメラ角度と初期距離に対するズーム比は可能な限り維持する。
 - 発音エフェクトのON/OFFは次のNote Onから反映し、OFFにした種類のActive Effectも破棄する。

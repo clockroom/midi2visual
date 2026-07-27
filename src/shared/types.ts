@@ -7,6 +7,8 @@ export interface AppSettings {
 	trackSpacing: number
 	noteSize: number
 	noteOpacity: number
+	noteBaseEmissiveIntensity: number
+	noteDistanceVisibility: number
 	noteGlowIntensity: number
 	noteAfterglowSeconds: number
 	cameraFov: number

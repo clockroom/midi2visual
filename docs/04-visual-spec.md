@@ -42,19 +42,24 @@
 
 ### 発音前
 
-- 基本のEmissive強度を`0.15`とする。
+- 基本のEmissive強度は`noteBaseEmissiveIntensity`とする。
+- 初期値は`0.55`とし、照明へ依存しない最低発光量として使用する。
+- `noteDistanceVisibility`でFog適用後の色をFog適用前の色へ補間する。
+- `noteDistanceVisibility`の初期値は`0.8`とする。
 - `noteOpacity`を使用する。
 
 ### 発音中
 
 - Note OnからNote Offまで発光状態とする。
 - Velocityが高いほどEmissive強度とGlow不透明度を強くする。
+- Emissive強度は`noteBaseEmissiveIntensity`を下回らない。
 - ノート本体の不透明度をわずかに上げる。
 - ノート本体を拡大した半透明Glowを加算合成する。
 
 ### Note Off後
 
 - `noteAfterglowSeconds`の間、発光と不透明度を線形に減衰する。
+- 残光中のEmissive強度も`noteBaseEmissiveIntensity`を下回らない。
 - 残光終了後は非表示範囲へ流れる。
 
 ## Note Onエフェクト

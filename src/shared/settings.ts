@@ -12,6 +12,8 @@ export const defaultSettings: AppSettings = {
 	trackSpacing: 1.5,
 	noteSize: 0.4,
 	noteOpacity: 0.82,
+	noteBaseEmissiveIntensity: 0.55,
+	noteDistanceVisibility: 0.8,
 	noteGlowIntensity: 1.7,
 	noteAfterglowSeconds: 0.3,
 	cameraFov: 48,
