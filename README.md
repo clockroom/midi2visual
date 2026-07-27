@@ -85,6 +85,8 @@ docker compose up -d
 
 発音面エフェクトは、コアフラッシュ、拡散リング、少量のスパークを個別にON/OFFできます。カスタム画像はTrack色で通常のAlpha Blendを行い、Note Onを最大濃度としてフェードしながら拡大または縮小します。既存のノート発光とNote Off後の残光には影響しません。
 
+発音平面下端にはTrackごとの20セグメント式レベルメータを表示できます。Note OnのVelocityへ即座に反応し、一定時間で減衰します。色、感度、全体の不透明度、最大高さ、Track幅に対するメータ幅を設定できます。感度を上げると低域Zoneが狭まり、黄・赤のZoneへ入りやすくなります。
+
 ## MIDIの扱い
 
 - SMF Format 0 / 1
@@ -144,7 +146,9 @@ src/
 		types.ts
 	stage/
 		effects.ts
+		level-meters.ts
 		main.ts
+		palette.ts
 		timeline.ts
 		visualizer.ts
 	styles/

@@ -45,7 +45,9 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	└─ types.ts
 │	├─ stage/
 │	│	├─ effects.ts
+│	│	├─ level-meters.ts
 │	│	├─ main.ts
+│	│	├─ palette.ts
 │	│	├─ timeline.ts
 │	│	└─ visualizer.ts
 │	└─ styles/
@@ -125,6 +127,19 @@ Three.jsへ依存しません。
 - 曲時刻に追従した移動、Scale、Opacity更新
 - Active EffectとTextureのDispose
 
+### `stage/level-meters.ts`
+
+- TrackごとのVelocity Envelope
+- 20セグメントの点灯状態
+- Holdと一定時間Decay
+- 低・中・高の3つの`InstancedMesh`
+- 感度に応じたZone境界の線形補間
+- 色、Opacity、高さ、幅の即時更新
+
+### `stage/palette.ts`
+
+- ノート、発音エフェクト、Trackカラーメータで共有する色配列
+
 ### `stage/main.ts`
 
 - DOM取得
@@ -155,6 +170,7 @@ flowchart LR
 	Model --> Visualizer["MidiVisualizer"]
 	Assets["public/assets + public/custom.png"] --> Effects["NoteImpactEffects"]
 	Model --> Effects
+	Model --> Meters["TrackLevelMeters"]
 	Timeline --> Stage["stage/main.ts"]
 	Stage --> Visualizer
 	Control["control/main.ts"] --> Storage["localStorage"]
@@ -172,7 +188,7 @@ flowchart LR
 4. Timelineを現在の`performance.now()`で更新する。
 5. ノートGroupと枠GroupのZ位置を更新する。
 6. 発音中と残光中のMaterialを更新する。
-7. 前フレームから通過したNote Onを検出し、発音エフェクトを生成・更新する。
+7. 前フレームから通過したNote Onを検出し、発音エフェクトとTrackレベルメータを更新する。
 8. SceneをRenderする。
 9. BPMと拍数表示を更新する。
 
@@ -206,4 +222,5 @@ sequenceDiagram
 - 設定変更で再構築するGroupは、既存GeometryとMaterialをDisposeする。
 - 背景Textureを更新するときは旧TextureをDisposeする。
 - 発音エフェクト終了時は個別MaterialをDisposeし、共有GeometryとTextureは管理クラス終了時にDisposeする。
+- Trackレベルメータは共有Geometryと3つのInstancedMeshを終了時にDisposeする。
 - ページ終了時にScene ResourceとRendererをDisposeする。

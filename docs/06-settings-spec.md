@@ -40,6 +40,12 @@
 | `customImpactScaleMode` | `expand` | `expand` / `shrink` | 拡大または縮小 |
 | `customImpactStartScale` | `1` | `0.1〜5`, step `0.05` | 小さい側のScale |
 | `customImpactEndScale` | `3` | `0.1〜5`, step `0.05` | 大きい側のScale |
+| `showLevelMeters` | `true` | ON/OFF | Trackレベルメータを表示する |
+| `levelMeterColorMode` | `normal` | Select | `normal`, `white`, `blue`, `track` |
+| `levelMeterSensitivity` | `0` | `0〜100`, step `1` | 低域を狭め、中域・高域を広げる割合 |
+| `levelMeterOpacity` | `0.8` | `0〜1`, step `0.05` | 全ZoneのOpacityへ乗じる |
+| `levelMeterMaxHeightPercent` | `25` | `10〜50`, step `1` | 発音平面高に対する最大高の割合 |
+| `levelMeterWidthPercent` | `70` | `50〜100`, step `1` | `trackSpacing`に対する幅の割合 |
 | `backgroundParticleCount` | `120` | `0〜500`, step `10` | 背景粒子数 |
 | `backgroundTopColor` | `#101b32` | Color | 背景グラデーション上部色 |
 | `backgroundBottomColor` | `#02040b` | Color | 背景下部色とFog色 |
@@ -84,6 +90,9 @@
 - 発音エフェクトのON/OFFは次のNote Onから反映し、OFFにした種類のActive Effectも破棄する。
 - カスタム画像名または表示フラグを変更した場合はTextureを再取得する。
 - `midiFileName`の変更だけでは再解析せず、「MIDIを再読み込み」または映像画面の`R`で反映する。
+- レベルメータ設定は既存InstanceのMaterial、色、配置、Scaleへ即時反映する。
+- 感度変更時はZoneごとのInstance数が変わるため、3つのInstancedMeshを再構築する。
+- レベルメータをOFFにした場合は全Trackの状態をゼロへ戻す。
 
 ## 保存しない状態
 

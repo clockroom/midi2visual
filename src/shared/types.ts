@@ -24,6 +24,12 @@ export interface AppSettings {
 	customImpactScaleMode: 'expand' | 'shrink'
 	customImpactStartScale: number
 	customImpactEndScale: number
+	showLevelMeters: boolean
+	levelMeterColorMode: 'normal' | 'white' | 'blue' | 'track'
+	levelMeterSensitivity: number
+	levelMeterOpacity: number
+	levelMeterMaxHeightPercent: number
+	levelMeterWidthPercent: number
 	backgroundParticleCount: number
 	backgroundTopColor: string
 	backgroundBottomColor: string

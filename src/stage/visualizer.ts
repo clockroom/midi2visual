@@ -1,6 +1,8 @@
 import * as THREE from 'three'
 import type { AppSettings, MidiModel, VisualNote } from '../shared/types'
 import { NoteImpactEffects } from './effects'
+import { TrackLevelMeters } from './level-meters'
+import { TRACK_PALETTE } from './palette'
 
 interface NoteObject {
 	note: VisualNote
@@ -17,17 +19,6 @@ const ORBIT_SPEED = THREE.MathUtils.degToRad(35)
 const ZOOM_SPEED_RATIO = 0.8
 const MIN_DISTANCE_RATIO = 0.2
 const MAX_DISTANCE_RATIO = 4
-const TRACK_PALETTE = [
-	0x55d8ff,
-	0x8c7bff,
-	0xff6eb4,
-	0xffae57,
-	0x75e6a4,
-	0xf4e66b,
-	0x5c9dff,
-	0xdf78ff,
-]
-
 export class MidiVisualizer {
 	private readonly scene = new THREE.Scene()
 	private readonly camera = new THREE.PerspectiveCamera()
@@ -39,6 +30,7 @@ export class MidiVisualizer {
 	private readonly particlesGroup = new THREE.Group()
 	private readonly noteObjects: NoteObject[] = []
 	private readonly impactEffects: NoteImpactEffects
+	private readonly levelMeters: TrackLevelMeters
 	private particlePoints: THREE.Points | null = null
 	private model: MidiModel | null = null
 	private settings: AppSettings
@@ -59,6 +51,7 @@ export class MidiVisualizer {
 	constructor(container: HTMLElement, settings: AppSettings) {
 		this.settings = settings
 		this.impactEffects = new NoteImpactEffects(this.effectsGroup, settings)
+		this.levelMeters = new TrackLevelMeters(settings)
 		this.renderer = new THREE.WebGLRenderer({
 			antialias: true,
 			alpha: false,
@@ -76,6 +69,7 @@ export class MidiVisualizer {
 			this.notesGroup,
 			this.framesGroup,
 			this.playheadGroup,
+			this.levelMeters.group,
 			this.effectsGroup,
 			this.particlesGroup,
 		)
@@ -92,6 +86,7 @@ export class MidiVisualizer {
 	load(model: MidiModel): void {
 		this.model = model
 		this.impactEffects.clear()
+		this.levelMeters.clear()
 		this.previousEffectSongSeconds = null
 		this.nextEffectNoteIndex = 0
 		this.clearGroup(this.notesGroup)
@@ -99,6 +94,7 @@ export class MidiVisualizer {
 		this.clearGroup(this.playheadGroup)
 		this.noteObjects.length = 0
 		this.recalculateWorld()
+		this.configureLevelMeters()
 		this.buildNotes()
 		this.buildFrames()
 		this.buildPlayhead()
@@ -129,6 +125,7 @@ export class MidiVisualizer {
 			previous.trackSpacing !== settings.trackSpacing
 
 		this.recalculateWorld()
+		this.configureLevelMeters()
 
 		if (rebuildNotes) {
 			this.clearGroup(this.notesGroup)
@@ -217,7 +214,7 @@ export class MidiVisualizer {
 		this.notesGroup.position.z = timeOffset
 		this.framesGroup.position.z = timeOffset
 		this.updateNotes(songSeconds)
-		this.updateImpactEffects(songSeconds)
+		this.updateNoteOnReactions(songSeconds)
 		this.updateParticles(songSeconds)
 		this.renderer.render(this.scene, this.camera)
 	}
@@ -225,6 +222,7 @@ export class MidiVisualizer {
 	dispose(): void {
 		window.removeEventListener('resize', this.resize)
 		this.impactEffects.dispose()
+		this.levelMeters.dispose()
 		this.clearGroup(this.scene)
 		this.renderer.dispose()
 		this.renderer.domElement.remove()
@@ -433,7 +431,7 @@ export class MidiVisualizer {
 		}
 	}
 
-	private updateImpactEffects(songSeconds: number): void {
+	private updateNoteOnReactions(songSeconds: number): void {
 		if (!this.model) {
 			return
 		}
@@ -443,6 +441,7 @@ export class MidiVisualizer {
 			songSeconds < this.previousEffectSongSeconds
 		) {
 			this.impactEffects.clear()
+			this.levelMeters.clear()
 			this.nextEffectNoteIndex = this.findFirstNoteAfter(songSeconds)
 			this.previousEffectSongSeconds = songSeconds
 			return
@@ -463,13 +462,29 @@ export class MidiVisualizer {
 					color,
 					note.velocity,
 				)
+				this.levelMeters.trigger(note.trackIndex, note.velocity)
 			}
 
 			this.nextEffectNoteIndex += 1
 		}
 
-		this.impactEffects.update(songSeconds - this.previousEffectSongSeconds)
+		const deltaSeconds = songSeconds - this.previousEffectSongSeconds
+		this.impactEffects.update(deltaSeconds)
+		this.levelMeters.update(deltaSeconds)
 		this.previousEffectSongSeconds = songSeconds
+	}
+
+	private configureLevelMeters(): void {
+		if (!this.model) {
+			return
+		}
+
+		this.levelMeters.configure(this.settings, {
+			trackCount: this.model.trackCount,
+			trackSpacing: this.settings.trackSpacing,
+			bottomY: this.centerY - this.worldHeight / 2,
+			worldHeight: this.worldHeight,
+		})
 	}
 
 	private findFirstNoteAfter(songSeconds: number): number {

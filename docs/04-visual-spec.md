@@ -86,6 +86,22 @@
 - 単一の通常枠だけを表示する。
 - ノートと時間枠がこの平面へ到達した時刻を現在とする。
 
+## Trackレベルメータ
+
+- 各TrackのX位置へ配置し、発音平面の下辺を始点としてY方向へ伸ばす。
+- Zは`0.025`とし、発音平面とのZ-Fightingを避ける。
+- `PlaneGeometry`をXY平面のまま使用し、Billboard化しない。
+- 1Trackあたり20個の横長矩形を積み上げる。
+- 1区画の高さに対して矩形を`72%`とし、残り`28%`を上下の隙間として見せる。
+- 最大高は`worldHeight × levelMeterMaxHeightPercent / 100`とする。
+- 幅は`trackSpacing × levelMeterWidthPercent / 100`とする。
+- Velocityに応じて`ceil(velocity × 20)`個を下から表示する。
+- 感度`0%`ではindex `0〜13`を低域、`14〜17`を中域、`18〜19`を高域とする。
+- 感度`100%`ではindex `0〜5`を低域、`6〜13`を中域、`14〜19`を高域とする。
+- 中間の感度ではZone境界を線形補間して整数indexへ丸める。
+- 通常のAlpha Blendを使用し、ライティングの影響を受けない`MeshBasicMaterial`で描画する。
+- 非表示セグメントはInstanceのScaleをほぼゼロにする。
+
 ## 小節枠
 
 - 先頭Time SignatureとPPQから小節境界を計算する。

@@ -14,6 +14,7 @@ midi2visualは、DTM成果の公開動画を作るための、音声を再生し
 - ノートの発光と残光
 - 発音時のコアフラッシュ、拡散リング、スパーク
 - Track色で合成する拡大・縮小対応カスタム画像
+- Trackごとの20セグメント式Velocityレベルメータ
 - 小節枠と任意の拍枠
 - プリロール、ポストロール、先頭再生、停止
 - 現在BPMと曲全体の拍数カウンター
@@ -55,6 +56,8 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/stage/timeline.ts` | 実時間基準の再生時刻管理 |
 | `src/stage/visualizer.ts` | Three.jsシーン、ノート、枠、粒子、カメラ |
 | `src/stage/effects.ts` | 発音時エフェクトの生成、時間更新、Texture管理 |
+| `src/stage/level-meters.ts` | Trackレベルメータの状態、減衰、InstancedMesh描画 |
+| `src/stage/palette.ts` | ノート、エフェクト、メータで共有するTrack色 |
 | `src/stage/main.ts` | 映像ページの初期化、入力、再生、表示更新 |
 | `src/control/main.ts` | 設定UIの生成、保存、通知 |
 | `src/styles/stage.css` | 映像ページとBPM・拍数表示 |
@@ -97,6 +100,8 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - 設定した`public`直下のMIDIが読み込まれる
 - 3種の発音エフェクトを個別にON/OFFできる
 - カスタム画像が発音時にTrack色で合成され、フェードしながら拡大または縮小する
+- TrackレベルメータがNote Onへ反応し、ロングトーンでも一定時間で減衰する
+- レベルメータの表示、色、感度、不透明度、高さ、幅設定が即時反映される
 - 再生、停止、プリロール、ポストロールが機能する
 - Tempo変更位置でBPM表示が切り替わる
 - 拍数表示の桁が変わっても右下の位置がずれない

@@ -99,6 +99,24 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'customImpactStartScale', label: '開始サイズ', min: 0.1, max: 5, step: 0.05 },
 		{ kind: 'number', key: 'customImpactEndScale', label: '終了サイズ', min: 0.1, max: 5, step: 0.05 },
 	],
+	'level-meter-settings': [
+		{ kind: 'boolean', key: 'showLevelMeters', label: 'レベルメータを表示' },
+		{
+			kind: 'select',
+			key: 'levelMeterColorMode',
+			label: '色',
+			options: [
+				{ value: 'normal', label: 'ノーマル (緑・黄・赤)' },
+				{ value: 'white', label: '白系' },
+				{ value: 'blue', label: '青系' },
+				{ value: 'track', label: 'トラックカラー' },
+			],
+		},
+		{ kind: 'number', key: 'levelMeterSensitivity', label: '感度 (%)', min: 0, max: 100, step: 1 },
+		{ kind: 'number', key: 'levelMeterOpacity', label: '全体の不透明度', min: 0, max: 1, step: 0.05 },
+		{ kind: 'number', key: 'levelMeterMaxHeightPercent', label: '最大高さ (%)', min: 10, max: 50, step: 1 },
+		{ kind: 'number', key: 'levelMeterWidthPercent', label: 'トラック幅比 (%)', min: 50, max: 100, step: 1 },
+	],
 	'space-settings': [
 		{ kind: 'number', key: 'trackSpacing', label: 'トラック間隔', min: 0.6, max: 4, step: 0.05 },
 		{ kind: 'number', key: 'cameraFov', label: 'カメラ視野角', min: 25, max: 80, step: 1 },
