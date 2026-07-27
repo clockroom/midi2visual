@@ -1,0 +1,13 @@
+services:
+  npm:
+    build: ./docker/npm
+    environment:
+      TZ: Asia/Tokyo
+    ports:
+      - 5173:5173
+    volumes:
+      - .:/app
+    working_dir: /app
+    init: true
+    entrypoint: ["npm"]
+    command: ["run","dev","--foreground-scripts"]

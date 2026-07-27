@@ -1,0 +1,70 @@
+:root {
+	color-scheme: dark;
+	font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	background: #02040b;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+html,
+body,
+#stage {
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	overflow: hidden;
+}
+
+#stage canvas {
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+.stage-message {
+	position: fixed;
+	inset: 50% auto auto 50%;
+	z-index: 3;
+	padding: 0.7rem 1rem;
+	border: 1px solid rgb(163 218 255 / 35%);
+	border-radius: 999px;
+	color: #dff6ff;
+	background: rgb(2 7 18 / 72%);
+	backdrop-filter: blur(12px);
+	transform: translate(-50%, -50%);
+	letter-spacing: 0.04em;
+}
+
+.measure-counter {
+	position: fixed;
+	right: 2rem;
+	bottom: 1.65rem;
+	z-index: 2;
+	color: rgb(226 246 255 / 82%);
+	font-size: clamp(1rem, 2vw, 1.55rem);
+	font-variant-numeric: tabular-nums;
+	letter-spacing: 0.08em;
+	text-shadow: 0 0 18px rgb(90 208 255 / 55%);
+}
+
+.key-help {
+	position: fixed;
+	left: 1.2rem;
+	bottom: 1rem;
+	z-index: 2;
+	color: rgb(191 222 240 / 38%);
+	font-size: 0.72rem;
+	letter-spacing: 0.04em;
+	opacity: 0;
+	transition: opacity 180ms ease;
+}
+
+body:hover .key-help {
+	opacity: 1;
+}
+
+[hidden] {
+	display: none !important;
+}

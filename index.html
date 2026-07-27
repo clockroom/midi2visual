@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="ja">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>MIDI Visualizer</title>
+	</head>
+	<body class="stage-page">
+		<main id="stage" aria-label="MIDI visualizer"></main>
+		<div id="loading" class="stage-message">Loading input.mid...</div>
+		<div id="measure-counter" class="measure-counter" aria-live="off"></div>
+		<div class="key-help">Space: Play from start / Esc: Stop / R: Reload MIDI</div>
+		<script type="module" src="/src/stage/main.ts"></script>
+	</body>
+</html>

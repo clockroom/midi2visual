@@ -1,0 +1,57 @@
+import type { AppSettings } from './types'
+
+export const SETTINGS_STORAGE_KEY = 'midi2visual.settings.v1'
+export const SETTINGS_CHANNEL_NAME = 'midi2visual'
+
+export const defaultSettings: AppSettings = {
+	preRollSeconds: 2,
+	postRollSeconds: 3,
+	lookAheadSeconds: 8,
+	timeUnitsPerSecond: 4,
+	trackSpacing: 1.5,
+	noteWidth: 0.72,
+	noteHeight: 0.22,
+	noteOpacity: 0.82,
+	noteGlowIntensity: 1.7,
+	noteAfterglowSeconds: 0.3,
+	cameraFov: 48,
+	showMeasureFrames: true,
+	showBeatFrames: false,
+	showMeasureCounter: true,
+	frameOpacity: 0.28,
+	backgroundParticleCount: 120,
+	backgroundTopColor: '#101b32',
+	backgroundBottomColor: '#02040b',
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+export function loadSettings(): AppSettings {
+	const saved = localStorage.getItem(SETTINGS_STORAGE_KEY)
+
+	if (!saved) {
+		return structuredClone(defaultSettings)
+	}
+
+	try {
+		const parsed: unknown = JSON.parse(saved)
+
+		if (!isRecord(parsed)) {
+			throw new Error('Saved settings are not an object.')
+		}
+
+		return {
+			...structuredClone(defaultSettings),
+			...parsed,
+		} as AppSettings
+	} catch (error) {
+		console.warn('Saved settings could not be read. Defaults are used.', error)
+		return structuredClone(defaultSettings)
+	}
+}
+
+export function saveSettings(settings: AppSettings): void {
+	localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings))
+}

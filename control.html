@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ja">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>MIDI Visualizer Control</title>
+	</head>
+	<body class="control-page">
+		<main class="control-shell">
+			<header class="control-header">
+				<div>
+					<p class="eyebrow">MIDI2VISUAL</p>
+					<h1>Visualizer Control</h1>
+					<p>変更は同一オリジンで開いている映像画面へ即時反映されます。</p>
+				</div>
+				<a class="stage-link" href="/" target="_blank" rel="noreferrer">映像画面を開く</a>
+			</header>
+
+			<form id="settings-form" class="settings-grid">
+				<section class="settings-card">
+					<h2>時間</h2>
+					<div id="time-settings" class="field-list"></div>
+				</section>
+				<section class="settings-card">
+					<h2>ノート</h2>
+					<div id="note-settings" class="field-list"></div>
+				</section>
+				<section class="settings-card">
+					<h2>空間とカメラ</h2>
+					<div id="space-settings" class="field-list"></div>
+				</section>
+				<section class="settings-card">
+					<h2>ガイド</h2>
+					<div id="guide-settings" class="field-list"></div>
+				</section>
+				<section class="settings-card">
+					<h2>背景</h2>
+					<div id="background-settings" class="field-list"></div>
+				</section>
+			</form>
+
+			<footer class="control-actions">
+				<button id="reload-midi" type="button">input.midを再読み込み</button>
+				<button id="reset-settings" class="secondary" type="button">初期設定へ戻す</button>
+				<span id="save-status" role="status">保存済み</span>
+			</footer>
+		</main>
+		<script type="module" src="/src/control/main.ts"></script>
+	</body>
+</html>
