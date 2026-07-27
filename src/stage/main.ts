@@ -18,7 +18,9 @@ function getRequiredElement<T extends Element>(selector: string): T {
 
 const stage = getRequiredElement<HTMLElement>('#stage')
 const loading = getRequiredElement<HTMLElement>('#loading')
-const measureCounter = getRequiredElement<HTMLElement>('#measure-counter')
+const playbackMetrics = getRequiredElement<HTMLElement>('#playback-metrics')
+const bpmCounter = getRequiredElement<HTMLElement>('#bpm-counter')
+const beatCounter = getRequiredElement<HTMLElement>('#beat-counter')
 
 let settings = loadSettings()
 let model: MidiModel | null = null
@@ -26,7 +28,7 @@ let timeline: PlaybackTimeline | null = null
 const visualizer = new MidiVisualizer(stage, settings)
 const channel = new AppChannel()
 
-async function reloadMidi(): Promise<void> {
+async function reloadMidi(notifyControl = false): Promise<void> {
 	loading.hidden = false
 	loading.textContent = 'Loading input.mid...'
 
@@ -39,12 +41,25 @@ async function reloadMidi(): Promise<void> {
 		)
 		visualizer.load(model)
 		loading.hidden = true
-		updateMeasureCounter(-settings.preRollSeconds)
+		const beatDigits = String(model.totalBeats).length
+		playbackMetrics.style.setProperty(
+			'--beat-counter-width',
+			`${Math.max(9, beatDigits * 2 + 5)}ch`,
+		)
+		updatePlaybackMetrics(-settings.preRollSeconds)
+
+		if (notifyControl) {
+			channel.send({ type: 'midiReloaded' })
+		}
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error)
 		console.error('MIDI load failed.', error)
 		loading.textContent = 'Failed to load input.mid'
 		alert(message)
+
+		if (notifyControl) {
+			channel.send({ type: 'midiReloadFailed', message })
+		}
 	}
 }
 
@@ -56,43 +71,65 @@ function applySettings(nextSettings: AppSettings): void {
 		settings.postRollSeconds,
 		model?.durationSeconds ?? 0,
 	)
-	updateMeasureCounter(timeline?.currentSeconds ?? -settings.preRollSeconds)
+	updatePlaybackMetrics(timeline?.currentSeconds ?? -settings.preRollSeconds)
 }
 
-function updateMeasureCounter(songSeconds: number): void {
+function findMarkerIndexAtTime(
+	markers: ReadonlyArray<{ seconds: number }>,
+	songSeconds: number,
+): number {
+	let low = 0
+	let high = markers.length - 1
+	let result = -1
+
+	while (low <= high) {
+		const middle = Math.floor((low + high) / 2)
+
+		if (markers[middle].seconds <= songSeconds) {
+			result = middle
+			low = middle + 1
+		} else {
+			high = middle - 1
+		}
+	}
+
+	return result
+}
+
+function formatBpm(bpm: number): string {
+	return Number.isInteger(bpm) ? String(bpm) : bpm.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')
+}
+
+function updatePlaybackMetrics(songSeconds: number): void {
 	if (!model || !settings.showMeasureCounter) {
-		measureCounter.hidden = true
+		playbackMetrics.hidden = true
 		return
 	}
 
-	measureCounter.hidden = false
+	playbackMetrics.hidden = false
+	const tempoIndex = findMarkerIndexAtTime(model.tempoMarkers, Math.max(0, songSeconds))
+	const currentBpm = model.tempoMarkers[Math.max(0, tempoIndex)].bpm
+	bpmCounter.textContent = `BPM = ${formatBpm(currentBpm)}`
 
 	if (songSeconds < 0) {
-		measureCounter.textContent = `0 / ${model.totalMeasures}`
+		beatCounter.textContent = `0 / ${model.totalBeats}`
 		return
 	}
 
 	if (songSeconds >= model.durationSeconds) {
-		measureCounter.textContent = `${model.totalMeasures} / ${model.totalMeasures}`
+		beatCounter.textContent = `${model.totalBeats} / ${model.totalBeats}`
 		return
 	}
 
-	let currentMeasure = 1
-
-	for (let index = 0; index < model.measureMarkers.length; index += 1) {
-		if (model.measureMarkers[index].seconds > songSeconds) {
-			break
-		}
-		currentMeasure = Math.min(index + 1, model.totalMeasures)
-	}
-
-	measureCounter.textContent = `${currentMeasure} / ${model.totalMeasures}`
+	const beatIndex = findMarkerIndexAtTime(model.beatTimeline, songSeconds)
+	const currentBeat = Math.min(Math.max(beatIndex + 1, 1), model.totalBeats)
+	beatCounter.textContent = `${currentBeat} / ${model.totalBeats}`
 }
 
 function animate(nowMilliseconds: number): void {
 	const songSeconds = timeline?.update(nowMilliseconds) ?? -settings.preRollSeconds
 	visualizer.render(songSeconds)
-	updateMeasureCounter(songSeconds)
+	updatePlaybackMetrics(songSeconds)
 	requestAnimationFrame(animate)
 }
 
@@ -121,7 +158,7 @@ channel.subscribe((message) => {
 	}
 
 	if (message.type === 'reloadMidi') {
-		void reloadMidi()
+		void reloadMidi(true)
 	}
 })
 

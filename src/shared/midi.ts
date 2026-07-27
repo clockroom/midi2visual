@@ -1,8 +1,14 @@
 import { Midi } from '@tonejs/midi'
-import type { MidiModel, TimelineMarker, VisualNote } from './types'
+import type {
+	MidiModel,
+	TempoMarker,
+	TimelineMarker,
+	VisualNote,
+} from './types'
 
 const DEFAULT_NUMERATOR = 4
 const DEFAULT_DENOMINATOR = 4
+const DEFAULT_BPM = 120
 
 export async function loadMidiModel(): Promise<MidiModel> {
 	const response = await fetch(`/input.mid?v=${Date.now()}`, { cache: 'no-store' })
@@ -48,8 +54,10 @@ export async function loadMidiModel(): Promise<MidiModel> {
 	const measureTicks = midi.header.ppq * numerator * (4 / denominator)
 	const beatTicks = midi.header.ppq * (4 / denominator)
 	const totalMeasures = Math.max(1, Math.ceil(durationTicks / measureTicks))
+	const totalBeats = totalMeasures * numerator
 	const measureMarkers: TimelineMarker[] = []
 	const beatMarkers: TimelineMarker[] = []
+	const beatTimeline: TimelineMarker[] = []
 
 	for (let measure = 0; measure <= totalMeasures; measure += 1) {
 		const ticks = Math.round(measure * measureTicks)
@@ -73,6 +81,34 @@ export async function loadMidiModel(): Promise<MidiModel> {
 		}
 	}
 
+	for (let beat = 0; beat < totalBeats; beat += 1) {
+		const ticks = Math.round(beat * beatTicks)
+		beatTimeline.push({
+			seconds: midi.header.ticksToSeconds(ticks),
+			ticks,
+			measure: Math.floor(beat / numerator) + 1,
+		})
+	}
+
+	const tempoMarkers: TempoMarker[] = [{ seconds: 0, bpm: DEFAULT_BPM }]
+	const tempoEvents = midi.header.tempos
+		.slice()
+		.sort((left, right) => left.ticks - right.ticks)
+
+	for (const tempo of tempoEvents) {
+		const marker = {
+			seconds: midi.header.ticksToSeconds(tempo.ticks),
+			bpm: tempo.bpm,
+		}
+		const previous = tempoMarkers[tempoMarkers.length - 1]
+
+		if (previous.seconds === marker.seconds) {
+			tempoMarkers[tempoMarkers.length - 1] = marker
+		} else {
+			tempoMarkers.push(marker)
+		}
+	}
+
 	return {
 		notes,
 		trackCount: sourceTracks.length,
@@ -83,7 +119,10 @@ export async function loadMidiModel(): Promise<MidiModel> {
 		numerator,
 		denominator,
 		totalMeasures,
+		totalBeats,
 		measureMarkers,
 		beatMarkers,
+		beatTimeline,
+		tempoMarkers,
 	}
 }

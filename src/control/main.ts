@@ -49,7 +49,7 @@ const groups: Record<string, Array<NumericSetting | BooleanSetting | ColorSettin
 	'guide-settings': [
 		{ kind: 'boolean', key: 'showMeasureFrames', label: '小節枠を表示' },
 		{ kind: 'boolean', key: 'showBeatFrames', label: '拍枠を表示' },
-		{ kind: 'boolean', key: 'showMeasureCounter', label: '小節カウンターを表示' },
+		{ kind: 'boolean', key: 'showMeasureCounter', label: 'BPMと拍数カウンターを表示' },
 		{ kind: 'number', key: 'frameOpacity', label: '枠の不透明度', min: 0.02, max: 1, step: 0.01 },
 	],
 	'background-settings': [
@@ -154,6 +154,16 @@ document.querySelector('#reset-settings')?.addEventListener('click', () => {
 
 document.querySelector('#reload-midi')?.addEventListener('click', () => {
 	channel.send({ type: 'reloadMidi' })
+})
+
+channel.subscribe((message) => {
+	if (message.type === 'midiReloaded') {
+		alert('input.midを再読み込みしました。')
+	}
+
+	if (message.type === 'midiReloadFailed') {
+		alert(`input.midの再読み込みに失敗しました。\n${message.message}`)
+	}
 })
 
 window.addEventListener('beforeunload', () => channel.close())

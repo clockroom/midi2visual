@@ -35,6 +35,11 @@ export interface TimelineMarker {
 	measure: number
 }
 
+export interface TempoMarker {
+	seconds: number
+	bpm: number
+}
+
 export interface MidiModel {
 	notes: VisualNote[]
 	trackCount: number
@@ -45,10 +50,15 @@ export interface MidiModel {
 	numerator: number
 	denominator: number
 	totalMeasures: number
+	totalBeats: number
 	measureMarkers: TimelineMarker[]
 	beatMarkers: TimelineMarker[]
+	beatTimeline: TimelineMarker[]
+	tempoMarkers: TempoMarker[]
 }
 
 export type AppMessage =
 	| { type: 'settingsChanged'; settings: AppSettings }
 	| { type: 'reloadMidi' }
+	| { type: 'midiReloaded' }
+	| { type: 'midiReloadFailed'; message: string }

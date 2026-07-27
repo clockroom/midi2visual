@@ -37,16 +37,33 @@ body,
 	letter-spacing: 0.04em;
 }
 
-.measure-counter {
+.playback-metrics {
+	--beat-counter-width: 11ch;
+
 	position: fixed;
 	right: 2rem;
 	bottom: 1.65rem;
 	z-index: 2;
+	display: grid;
+	grid-template-columns: 14ch var(--beat-counter-width);
+	column-gap: 1.25rem;
+	align-items: baseline;
 	color: rgb(226 246 255 / 82%);
 	font-size: clamp(1rem, 2vw, 1.55rem);
 	font-variant-numeric: tabular-nums;
 	letter-spacing: 0.08em;
 	text-shadow: 0 0 18px rgb(90 208 255 / 55%);
+}
+
+.bpm-counter,
+.beat-counter {
+	display: block;
+	white-space: nowrap;
+	text-align: right;
+}
+
+.beat-counter {
+	inline-size: var(--beat-counter-width);
 }
 
 .key-help {
