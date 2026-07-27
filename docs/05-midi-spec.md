@@ -1,0 +1,132 @@
+# MIDI仕様
+
+## 入力
+
+- ファイルは`public/input.mid`固定とする。
+- ブラウザから`/input.mid`として取得する。
+- SMF Format 0 / 1を対象とする。
+- PPQベースのTime Divisionを前提とする。
+- 解析には`@tonejs/midi`を使用する。
+
+## 使用する情報
+
+### 演奏情報
+
+- Note On
+- Note Off
+- Velocity
+- Track
+
+Note On Velocity=`0`のNote Off相当処理はMIDIパーサーへ委ねる。
+
+### 時間・構造情報
+
+- PPQ
+- Tempo
+- 先頭Time Signature
+
+TempoとTime Signatureは描画する演奏イベントではないが、秒変換、小節枠、拍数カウンターに必要です。
+
+## 無視する情報
+
+- MIDI Channelによる列分割
+- CC
+- Sustain Pedal
+- Pitch Bend
+- Aftertouch
+- Program Change
+- SysEx
+- Track Nameの映像表示
+- Marker、歌詞、コード情報
+
+パーサーがこれらを読み取っても、MVPの描画モデルでは参照しません。
+
+## Track
+
+- ノートを1つ以上含むTrackだけを表示対象とする。
+- 空Trackとメタイベント専用Trackは除外する。
+- 表示順はSMF内のTrack順とする。
+- 並べ替え、表示・非表示設定は持たない。
+- 同一Track内の複数Channelは同じ列へ表示する。
+
+## ノートの正規化
+
+各ノートを次の情報へ変換する。
+
+```ts
+interface VisualNote {
+	trackIndex: number
+	pitch: number
+	velocity: number
+	startSeconds: number
+	endSeconds: number
+	startTicks: number
+	endTicks: number
+}
+```
+
+正規化後の配列は`startSeconds`順へ並べる。描画側はMIDIイベントの対応付けを行わない。
+
+## 曲長
+
+- `durationSeconds`は全ノートの最大`endSeconds`とする。
+- `durationTicks`は全ノートの最大`endTicks`とする。
+- 最後のノートより後にあるメタイベントは曲長へ含めない。
+- SMF先頭の無音時間は削除しない。
+
+## Pitch範囲
+
+- 全ノートの最小Pitchと最大Pitchを取得する。
+- 描画時に上下へ3半音の余白を付ける。
+- 手動範囲設定は持たない。
+
+## Time Signature
+
+- Time Signatureイベントをtick順へ並べ、最初の1件だけを使用する。
+- イベントがない場合は`4/4`とする。
+- 途中の拍子変更は非対応とする。
+
+小節と拍のtick数は次の式で計算する。
+
+```text
+measureTicks = PPQ × numerator × (4 / denominator)
+beatTicks = PPQ × (4 / denominator)
+```
+
+## 小節境界
+
+- `durationTicks / measureTicks`を切り上げて総小節数とする。
+- tick=`0`から総小節数の末尾境界までMarkerを生成する。
+- 各tickは`header.ticksToSeconds()`で秒へ変換する。
+- Tempo変更があっても小節枠の実時間位置を正しくする。
+
+## 拍境界
+
+用途に応じて2種類を生成する。
+
+### 描画用拍境界
+
+- 各小節内の小節頭以外を生成する。
+- 拍枠をONにした場合だけ描画する。
+- 小節頭は小節枠が担うため重複させない。
+
+### カウンター用拍Timeline
+
+- tick=`0`から総拍数分を生成する。
+- 総拍数は`totalMeasures × numerator`とする。
+- 現在時刻以下で最後のMarkerを二分探索し、現在拍を求める。
+
+## Tempo
+
+- Tempoイベントをtick順へ並べる。
+- 各Tempoイベントを`seconds`と`bpm`へ変換する。
+- tick=`0`の既定値としてBPM=`120`を用意する。
+- tick=`0`にTempoイベントがあれば既定値を置き換える。
+- 同一秒に複数のTempoイベントがある場合は後の値を使用する。
+- 現在時刻以下で最後のTempo Markerを二分探索し、表示BPMを求める。
+
+## エラー
+
+- HTTP取得に失敗した場合はステータスを含めて失敗する。
+- ノートを1つも含まないSMFは失敗する。
+- 解析例外は呼び出し元へ伝播し、画面とalertで通知する。
