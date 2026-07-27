@@ -2,8 +2,10 @@
 
 ## 入力
 
-- ファイルは`public/input.mid`固定とする。
-- ブラウザから`/input.mid`として取得する。
+- ファイルは`public`直下へ置き、設定中のファイル名で取得する。
+- 初期値は`input.mid`とする。
+- ファイル名に拡張子がなければ`.mid`を補完する。
+- Directory Traversalを避けるため、Pathが入力されても末尾のファイル名だけを使用する。
 - SMF Format 0 / 1を対象とする。
 - PPQベースのTime Divisionを前提とする。
 - 解析には`@tonejs/midi`を使用する。

@@ -23,4 +23,6 @@ pnpm-debug.log*
 .idea/
 .vscode/
 
+# Developer-specific files
 public/input-*.mid
+public/custom-*.png

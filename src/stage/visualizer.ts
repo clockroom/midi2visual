@@ -1,5 +1,6 @@
 import * as THREE from 'three'
 import type { AppSettings, MidiModel, VisualNote } from '../shared/types'
+import { NoteImpactEffects } from './effects'
 
 interface NoteObject {
 	note: VisualNote
@@ -34,11 +35,15 @@ export class MidiVisualizer {
 	private readonly notesGroup = new THREE.Group()
 	private readonly framesGroup = new THREE.Group()
 	private readonly playheadGroup = new THREE.Group()
+	private readonly effectsGroup = new THREE.Group()
 	private readonly particlesGroup = new THREE.Group()
 	private readonly noteObjects: NoteObject[] = []
+	private readonly impactEffects: NoteImpactEffects
 	private particlePoints: THREE.Points | null = null
 	private model: MidiModel | null = null
 	private settings: AppSettings
+	private previousEffectSongSeconds: number | null = null
+	private nextEffectNoteIndex = 0
 	private worldWidth = 1
 	private worldHeight = 1
 	private centerX = 0
@@ -53,6 +58,7 @@ export class MidiVisualizer {
 
 	constructor(container: HTMLElement, settings: AppSettings) {
 		this.settings = settings
+		this.impactEffects = new NoteImpactEffects(this.effectsGroup, settings)
 		this.renderer = new THREE.WebGLRenderer({
 			antialias: true,
 			alpha: false,
@@ -66,7 +72,13 @@ export class MidiVisualizer {
 		container.appendChild(this.renderer.domElement)
 
 		this.scene.fog = new THREE.FogExp2(settings.backgroundBottomColor, 0.018)
-		this.scene.add(this.notesGroup, this.framesGroup, this.playheadGroup, this.particlesGroup)
+		this.scene.add(
+			this.notesGroup,
+			this.framesGroup,
+			this.playheadGroup,
+			this.effectsGroup,
+			this.particlesGroup,
+		)
 		this.scene.add(new THREE.AmbientLight(0xacc8ff, 0.5))
 
 		const keyLight = new THREE.PointLight(0xffffff, 28, 100)
@@ -79,6 +91,9 @@ export class MidiVisualizer {
 
 	load(model: MidiModel): void {
 		this.model = model
+		this.impactEffects.clear()
+		this.previousEffectSongSeconds = null
+		this.nextEffectNoteIndex = 0
 		this.clearGroup(this.notesGroup)
 		this.clearGroup(this.framesGroup)
 		this.clearGroup(this.playheadGroup)
@@ -94,6 +109,7 @@ export class MidiVisualizer {
 	applySettings(settings: AppSettings): void {
 		const previous = this.settings
 		this.settings = settings
+		this.impactEffects.applySettings(settings)
 
 		if (!this.model) {
 			this.applyBackground()
@@ -202,12 +218,14 @@ export class MidiVisualizer {
 		this.notesGroup.position.z = timeOffset
 		this.framesGroup.position.z = timeOffset
 		this.updateNotes(songSeconds)
+		this.updateImpactEffects(songSeconds)
 		this.updateParticles(songSeconds)
 		this.renderer.render(this.scene, this.camera)
 	}
 
 	dispose(): void {
 		window.removeEventListener('resize', this.resize)
+		this.impactEffects.dispose()
 		this.clearGroup(this.scene)
 		this.renderer.dispose()
 		this.renderer.domElement.remove()
@@ -319,9 +337,7 @@ export class MidiVisualizer {
 
 	private buildPlayhead(): void {
 		const frame = this.createFrame(0, 0xc7f3ff, 0.72)
-		const glow = this.createFrame(0.03, 0x5cdfff, 0.22)
-		glow.scale.set(1.01, 1.02, 1)
-		this.playheadGroup.add(frame, glow)
+		this.playheadGroup.add(frame)
 	}
 
 	private createFrame(z: number, color: number, opacity: number): THREE.LineLoop {
@@ -416,6 +432,66 @@ export class MidiVisualizer {
 				glow.visible = false
 			}
 		}
+	}
+
+	private updateImpactEffects(songSeconds: number): void {
+		if (!this.model) {
+			return
+		}
+
+		if (
+			this.previousEffectSongSeconds === null ||
+			songSeconds < this.previousEffectSongSeconds
+		) {
+			this.impactEffects.clear()
+			this.nextEffectNoteIndex = this.findFirstNoteAfter(songSeconds)
+			this.previousEffectSongSeconds = songSeconds
+			return
+		}
+
+		while (this.nextEffectNoteIndex < this.model.notes.length) {
+			const note = this.model.notes[this.nextEffectNoteIndex]
+
+			if (note.startSeconds > songSeconds) {
+				break
+			}
+
+			if (note.startSeconds > this.previousEffectSongSeconds) {
+				const color = TRACK_PALETTE[note.trackIndex % TRACK_PALETTE.length]
+				this.impactEffects.trigger(
+					note.trackIndex * this.settings.trackSpacing,
+					this.pitchToY(note.pitch),
+					color,
+					note.velocity,
+				)
+			}
+
+			this.nextEffectNoteIndex += 1
+		}
+
+		this.impactEffects.update(songSeconds - this.previousEffectSongSeconds)
+		this.previousEffectSongSeconds = songSeconds
+	}
+
+	private findFirstNoteAfter(songSeconds: number): number {
+		if (!this.model) {
+			return 0
+		}
+
+		let low = 0
+		let high = this.model.notes.length
+
+		while (low < high) {
+			const middle = Math.floor((low + high) / 2)
+
+			if (this.model.notes[middle].startSeconds <= songSeconds) {
+				low = middle + 1
+			} else {
+				high = middle
+			}
+		}
+
+		return low
 	}
 
 	private updateParticles(songSeconds: number): void {

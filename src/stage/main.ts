@@ -1,6 +1,7 @@
 import '../styles/stage.css'
 import { AppChannel } from '../shared/channel'
 import { loadMidiModel } from '../shared/midi'
+import { normalizePublicFileName } from '../shared/public-files'
 import { loadSettings } from '../shared/settings'
 import type { AppSettings, MidiModel } from '../shared/types'
 import { PlaybackTimeline } from './timeline'
@@ -38,12 +39,16 @@ const cameraControlCodes = new Set([
 	'KeyS',
 ])
 
-async function reloadMidi(notifyControl = false): Promise<void> {
+async function reloadMidi(
+	notifyControl = false,
+	requestedFileName = settings.midiFileName,
+): Promise<void> {
+	const fileName = normalizePublicFileName(requestedFileName, 'input.mid', '.mid')
 	loading.hidden = false
-	loading.textContent = 'Loading input.mid...'
+	loading.textContent = `Loading ${fileName}...`
 
 	try {
-		model = await loadMidiModel()
+		model = await loadMidiModel(fileName)
 		timeline = new PlaybackTimeline(
 			settings.preRollSeconds,
 			settings.postRollSeconds,
@@ -59,16 +64,16 @@ async function reloadMidi(notifyControl = false): Promise<void> {
 		updatePlaybackMetrics(-settings.preRollSeconds)
 
 		if (notifyControl) {
-			channel.send({ type: 'midiReloaded' })
+			channel.send({ type: 'midiReloaded', fileName })
 		}
 	} catch (error) {
 		const message = error instanceof Error ? error.message : String(error)
 		console.error('MIDI load failed.', error)
-		loading.textContent = 'Failed to load input.mid'
+		loading.textContent = `Failed to load ${fileName}`
 		alert(message)
 
 		if (notifyControl) {
-			channel.send({ type: 'midiReloadFailed', message })
+			channel.send({ type: 'midiReloadFailed', fileName, message })
 		}
 	}
 }
@@ -213,7 +218,7 @@ channel.subscribe((message) => {
 	}
 
 	if (message.type === 'reloadMidi') {
-		void reloadMidi(true)
+		void reloadMidi(true, message.fileName)
 	}
 })
 
@@ -228,5 +233,5 @@ window.addEventListener('beforeunload', () => {
 	visualizer.dispose()
 })
 
-void reloadMidi()
+void reloadMidi(false, settings.midiFileName)
 requestAnimationFrame(animate)

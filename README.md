@@ -56,20 +56,25 @@ SMFのノートを、公開動画向けの3D映像として表示するMVPです
 docker compose up
 ```
 
-## input.midの差し替え
+## MIDIとカスタム画像の差し替え
 
-入力ファイルは`public/input.mid`固定です。
+使用するファイルは`public`直下へ配置し、設定画面でファイル名を指定します。
 
-1. 利用するSMFを`public/input.mid`として配置します。
-2. 映像画面で`R`キーを押すか、設定画面の「input.midを再読み込み」を押します。
+1. 利用するSMFを`public`直下へ配置します。初期値は`public/input.mid`です。
+2. 設定画面の「MIDIファイル名」へ名前を入力します。拡張子を省くと`.mid`を補完します。
+3. 「MIDIを再読み込み」を押します。読み込み結果はalertで通知されます。
 
 再読み込み時にはキャッシュ回避用のクエリを付けています。
+
+カスタム発音エフェクトを使う場合は画像を`public`直下へ配置し、「カスタム画像ファイル名」を指定して「カスタム画像」をONにします。初期画像は`public/custom.png`で、拡張子を省くと`.png`を補完します。
+
+組み込みエフェクトの画像は`public/assets`にあり、通常は差し替える必要がありません。
 
 ## 操作
 
 - `Space`: プリロール先頭から再生します。再生中に押した場合も先頭から再生し直します。
 - `Esc`: 停止し、プリロール先頭へ戻します。
-- `R`: `public/input.mid`を再読み込みします。
+- `R`: 設定中のMIDIファイルを再読み込みします。
 - `←` / `→`: 発音平面中央を注視したまま、カメラを水平方向へ移動します。
 - `↑` / `↓`: 発音平面中央を注視したまま、カメラを垂直方向へ移動します。
 - `W`: 現在の角度を維持してズームインします。
@@ -85,6 +90,8 @@ docker compose up
 `control.html`で変更した設定は、同一オリジンで開いている映像画面へ`BroadcastChannel`で即時反映されます。設定値は`localStorage`へ保存され、ページ再読み込み後も保持されます。
 
 初期設定へ戻す場合は、設定画面下部の「初期設定へ戻す」を押します。
+
+発音面エフェクトは、コアフラッシュ、拡散リング、少量のスパークを個別にON/OFFできます。カスタム画像はTrack色で通常のAlpha Blendを行い、Note Onを最大濃度としてフェードしながら拡大または縮小します。既存のノート発光とNote Off後の残光には影響しません。
 
 ## MIDIの扱い
 
@@ -120,7 +127,7 @@ docker compose run --rm --service-ports npm run preview
 - 曲末は最後のノート終了時刻を基準とします。ノート終了後にあるメタイベントだけの余白は曲長へ含めません。
 - `renderScale`は1.0固定です。
 - 音声同期は実時間基準ですが、画面録画やブラウザ自体のフレーム落ちは補正しません。
-- ローカルファイル選択、プリセットJSON、トラック並べ替え、トラック名表示、動画出力はありません。
+- OSのファイル選択、プリセットJSON、トラック並べ替え、トラック名表示、動画出力はありません。
 
 ## 構成
 
@@ -128,6 +135,11 @@ docker compose run --rm --service-ports npm run preview
 index.html
 control.html
 public/
+	assets/
+		flare.png
+		ring.png
+		spark.png
+	custom.png
 	input.mid
 src/
 	control/
@@ -135,9 +147,11 @@ src/
 	shared/
 		channel.ts
 		midi.ts
+		public-files.ts
 		settings.ts
 		types.ts
 	stage/
+		effects.ts
 		main.ts
 		timeline.ts
 		visualizer.ts

@@ -1,4 +1,5 @@
 export interface AppSettings {
+	midiFileName: string
 	preRollSeconds: number
 	postRollSeconds: number
 	lookAheadSeconds: number
@@ -14,6 +15,16 @@ export interface AppSettings {
 	showBeatFrames: boolean
 	showMeasureCounter: boolean
 	frameOpacity: number
+	showCoreFlash: boolean
+	showImpactRing: boolean
+	showSparks: boolean
+	showCustomImpactImage: boolean
+	customImpactImageFileName: string
+	customImpactDuration: number
+	customImpactOpacity: number
+	customImpactScaleMode: 'expand' | 'shrink'
+	customImpactStartScale: number
+	customImpactEndScale: number
 	backgroundParticleCount: number
 	backgroundTopColor: string
 	backgroundBottomColor: string
@@ -59,6 +70,6 @@ export interface MidiModel {
 
 export type AppMessage =
 	| { type: 'settingsChanged'; settings: AppSettings }
-	| { type: 'reloadMidi' }
-	| { type: 'midiReloaded' }
-	| { type: 'midiReloadFailed'; message: string }
+	| { type: 'reloadMidi'; fileName: string }
+	| { type: 'midiReloaded'; fileName: string }
+	| { type: 'midiReloadFailed'; fileName: string; message: string }

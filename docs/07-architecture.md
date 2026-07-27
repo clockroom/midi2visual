@@ -28,6 +28,11 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 ├─ index.html
 ├─ control.html
 ├─ public/
+│	├─ assets/
+│	│	├─ flare.png
+│	│	├─ ring.png
+│	│	└─ spark.png
+│	├─ custom.png
 │	└─ input.mid
 ├─ src/
 │	├─ control/
@@ -35,9 +40,11 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	├─ shared/
 │	│	├─ channel.ts
 │	│	├─ midi.ts
+│	│	├─ public-files.ts
 │	│	├─ settings.ts
 │	│	└─ types.ts
 │	├─ stage/
+│	│	├─ effects.ts
 │	│	├─ main.ts
 │	│	├─ timeline.ts
 │	│	└─ visualizer.ts
@@ -61,7 +68,7 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 
 ### `shared/midi.ts`
 
-- `input.mid`の取得
+- 設定されたMIDIファイルの取得
 - `@tonejs/midi`による解析
 - ノートTrackの抽出
 - Noteデータの正規化
@@ -69,6 +76,12 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 - 小節、拍、Tempo Timelineの生成
 
 Three.jsへ依存しません。
+
+### `shared/public-files.ts`
+
+- 入力値からDirectory部分を除外
+- 省略された`.mid`または`.png`の補完
+- `public`直下のURL生成
 
 ### `shared/settings.ts`
 
@@ -105,6 +118,13 @@ Three.jsへ依存しません。
 - ウィンドウリサイズ
 - Three.js ResourceのDispose
 
+### `stage/effects.ts`
+
+- 組み込みTextureとカスタムTextureの非同期読み込み
+- Note On時のコアフラッシュ、リング、スパーク、カスタム画像生成
+- 曲時刻に追従した移動、Scale、Opacity更新
+- Active EffectとTextureのDispose
+
 ### `stage/main.ts`
 
 - DOM取得
@@ -128,11 +148,13 @@ Three.jsへ依存しません。
 
 ```mermaid
 flowchart LR
-	SMF["public/input.mid"] --> Parser["@tonejs/midi"]
+	SMF["public/(設定したMIDI名)"] --> Parser["@tonejs/midi"]
 	Parser --> Normalizer["shared/midi.ts"]
 	Normalizer --> Model["MidiModel"]
 	Model --> Timeline["PlaybackTimeline"]
 	Model --> Visualizer["MidiVisualizer"]
+	Assets["public/assets + public/custom.png"] --> Effects["NoteImpactEffects"]
+	Model --> Effects
 	Timeline --> Stage["stage/main.ts"]
 	Stage --> Visualizer
 	Control["control/main.ts"] --> Storage["localStorage"]
@@ -150,8 +172,9 @@ flowchart LR
 4. Timelineを現在の`performance.now()`で更新する。
 5. ノートGroupと枠GroupのZ位置を更新する。
 6. 発音中と残光中のMaterialを更新する。
-7. SceneをRenderする。
-8. BPMと拍数表示を更新する。
+7. 前フレームから通過したNote Onを検出し、発音エフェクトを生成・更新する。
+8. SceneをRenderする。
+9. BPMと拍数表示を更新する。
 
 ## 時間と空間の分離
 
@@ -182,4 +205,5 @@ sequenceDiagram
 
 - 設定変更で再構築するGroupは、既存GeometryとMaterialをDisposeする。
 - 背景Textureを更新するときは旧TextureをDisposeする。
+- 発音エフェクト終了時は個別MaterialをDisposeし、共有GeometryとTextureは管理クラス終了時にDisposeする。
 - ページ終了時にScene ResourceとRendererをDisposeする。

@@ -1,4 +1,5 @@
 import { Midi } from '@tonejs/midi'
+import { toPublicFileUrl } from './public-files'
 import type {
 	MidiModel,
 	TempoMarker,
@@ -10,18 +11,20 @@ const DEFAULT_NUMERATOR = 4
 const DEFAULT_DENOMINATOR = 4
 const DEFAULT_BPM = 120
 
-export async function loadMidiModel(): Promise<MidiModel> {
-	const response = await fetch(`/input.mid?v=${Date.now()}`, { cache: 'no-store' })
+export async function loadMidiModel(fileName: string): Promise<MidiModel> {
+	const response = await fetch(`${toPublicFileUrl(fileName)}?v=${Date.now()}`, {
+		cache: 'no-store',
+	})
 
 	if (!response.ok) {
-		throw new Error(`input.midの読み込みに失敗しました。HTTP ${response.status}`)
+		throw new Error(`${fileName}の読み込みに失敗しました。HTTP ${response.status}`)
 	}
 
 	const midi = new Midi(await response.arrayBuffer())
 	const sourceTracks = midi.tracks.filter((track) => track.notes.length > 0)
 
 	if (sourceTracks.length === 0) {
-		throw new Error('input.midにNote On / Offから構成されたノートがありません。')
+		throw new Error(`${fileName}にNote On / Offから構成されたノートがありません。`)
 	}
 
 	const notes: VisualNote[] = []

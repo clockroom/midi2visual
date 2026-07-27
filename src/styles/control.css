@@ -19,7 +19,8 @@ body {
 }
 
 button,
-input {
+input,
+select {
 	font: inherit;
 }
 
@@ -129,6 +130,24 @@ input[type="color"] {
 	border: 1px solid rgb(160 209 237 / 20%);
 	border-radius: 0.4rem;
 	background: transparent;
+}
+
+input[type="text"],
+select {
+	width: 100%;
+	min-width: 0;
+	padding: 0.52rem 0.65rem;
+	border: 1px solid rgb(160 209 237 / 20%);
+	border-radius: 0.45rem;
+	color: #eaf5ff;
+	background: rgb(2 9 16 / 68%);
+	outline: none;
+}
+
+input[type="text"]:focus,
+select:focus {
+	border-color: rgb(98 207 255 / 72%);
+	box-shadow: 0 0 0 2px rgb(98 207 255 / 12%);
 }
 
 output {

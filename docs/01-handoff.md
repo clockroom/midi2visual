@@ -4,7 +4,7 @@
 
 midi2visualは、DTM成果の公開動画を作るための、音声を再生しないリアルタイムSMFビジュアライザーです。
 
-入力は`public/input.mid`固定です。映像は`index.html`、設定は`control.html`へ分離されています。設定画面は別タブまたは別ウィンドウで直接開きます。
+入力SMFとカスタム画像は`public`直下に置き、設定画面からファイル名を指定します。初期値は`input.mid`と`custom.png`です。映像は`index.html`、設定は`control.html`へ分離されています。
 
 現在のMVPは次の機能を実装済みです。
 
@@ -12,6 +12,8 @@ midi2visualは、DTM成果の公開動画を作るための、音声を再生し
 - Note On / Off、Velocity、Tempo、PPQ、先頭Time Signatureの利用
 - Track、Pitch、Timeを3軸へ割り当てたThree.js描画
 - ノートの発光と残光
+- 発音時のコアフラッシュ、拡散リング、スパーク
+- Track色で合成する拡大・縮小対応カスタム画像
 - 小節枠と任意の拍枠
 - プリロール、ポストロール、先頭再生、停止
 - 現在BPMと曲全体の拍数カウンター
@@ -32,7 +34,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 |---|---|
 | `Space` | プリロール先頭から再生 |
 | `Esc` | 停止してプリロール先頭へ戻る |
-| `R` | `public/input.mid`を再読み込み |
+| `R` | 設定中のMIDIファイルを再読み込み |
 | `←` / `→` | カメラを水平オービット |
 | `↑` / `↓` | カメラを垂直オービット |
 | `W` | ズームイン |
@@ -48,9 +50,11 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/shared/midi.ts` | SMF読み込みと描画用データへの正規化 |
 | `src/shared/types.ts` | 設定、MIDIモデル、ページ間メッセージの型 |
 | `src/shared/settings.ts` | 初期設定、読み込み、保存 |
+| `src/shared/public-files.ts` | `public`直下のファイル名正規化とURL生成 |
 | `src/shared/channel.ts` | `BroadcastChannel`の薄いラッパー |
 | `src/stage/timeline.ts` | 実時間基準の再生時刻管理 |
 | `src/stage/visualizer.ts` | Three.jsシーン、ノート、枠、粒子、カメラ |
+| `src/stage/effects.ts` | 発音時エフェクトの生成、時間更新、Texture管理 |
 | `src/stage/main.ts` | 映像ページの初期化、入力、再生、表示更新 |
 | `src/control/main.ts` | 設定UIの生成、保存、通知 |
 | `src/styles/stage.css` | 映像ページとBPM・拍数表示 |
@@ -76,6 +80,8 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - 初期値を追加・変更するときは`AppSettings`、`defaultSettings`、設定UI、[`06-settings-spec.md`](06-settings-spec.md)を同時に更新します。
 - 保存済み値は初期値へマージされるため、新規キーは初期値で補完されます。
 - `showMeasureCounter`は現在BPMと拍数カウンターの表示フラグです。名称は旧仕様由来です。
+- MIDIとカスタム画像のファイル名も設定として永続化します。
+- 組み込み画像は`public/assets`、ユーザーが差し替えるファイルは`public`直下に置きます。
 
 ### カメラ
 
@@ -88,7 +94,9 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 
 - `docker compose run --rm npm run build`
 - Firefoxで`index.html`が表示される
-- `public/input.mid`が読み込まれる
+- 設定した`public`直下のMIDIが読み込まれる
+- 3種の発音エフェクトを個別にON/OFFできる
+- カスタム画像が発音時にTrack色で合成され、フェードしながら拡大または縮小する
 - 再生、停止、プリロール、ポストロールが機能する
 - Tempo変更位置でBPM表示が切り替わる
 - 拍数表示の桁が変わっても右下の位置がずれない

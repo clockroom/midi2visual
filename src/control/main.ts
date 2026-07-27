@@ -5,6 +5,7 @@ import {
 	loadSettings,
 	saveSettings,
 } from '../shared/settings'
+import { normalizePublicFileName } from '../shared/public-files'
 import type { AppSettings } from '../shared/types'
 
 type NumericSetting = {
@@ -28,7 +29,38 @@ type ColorSetting = {
 	label: string
 }
 
-const groups: Record<string, Array<NumericSetting | BooleanSetting | ColorSetting>> = {
+type StringSetting = {
+	kind: 'string'
+	key: keyof AppSettings
+	label: string
+	defaultFileName: string
+	defaultExtension: string
+}
+
+type SelectSetting = {
+	kind: 'select'
+	key: keyof AppSettings
+	label: string
+	options: Array<{ value: string; label: string }>
+}
+
+type SettingDefinition =
+	| NumericSetting
+	| BooleanSetting
+	| ColorSetting
+	| StringSetting
+	| SelectSetting
+
+const groups: Record<string, SettingDefinition[]> = {
+	'file-settings': [
+		{
+			kind: 'string',
+			key: 'midiFileName',
+			label: 'MIDIファイル名',
+			defaultFileName: 'input.mid',
+			defaultExtension: '.mid',
+		},
+	],
 	'time-settings': [
 		{ kind: 'number', key: 'preRollSeconds', label: 'プリロール (秒)', min: 0, max: 10, step: 0.1 },
 		{ kind: 'number', key: 'postRollSeconds', label: 'ポストロール (秒)', min: 0, max: 10, step: 0.1 },
@@ -41,6 +73,32 @@ const groups: Record<string, Array<NumericSetting | BooleanSetting | ColorSettin
 		{ kind: 'number', key: 'noteOpacity', label: 'ノート不透明度', min: 0.1, max: 1, step: 0.01 },
 		{ kind: 'number', key: 'noteGlowIntensity', label: '発音時の発光', min: 0, max: 4, step: 0.05 },
 		{ kind: 'number', key: 'noteAfterglowSeconds', label: '残光 (秒)', min: 0.05, max: 2, step: 0.05 },
+	],
+	'effect-settings': [
+		{ kind: 'boolean', key: 'showCoreFlash', label: 'コアフラッシュ' },
+		{ kind: 'boolean', key: 'showImpactRing', label: '拡散リング' },
+		{ kind: 'boolean', key: 'showSparks', label: 'スパーク' },
+		{ kind: 'boolean', key: 'showCustomImpactImage', label: 'カスタム画像' },
+		{
+			kind: 'string',
+			key: 'customImpactImageFileName',
+			label: 'カスタム画像ファイル名',
+			defaultFileName: 'custom.png',
+			defaultExtension: '.png',
+		},
+		{
+			kind: 'select',
+			key: 'customImpactScaleMode',
+			label: 'カスタム画像の変形',
+			options: [
+				{ value: 'expand', label: '拡大' },
+				{ value: 'shrink', label: '縮小' },
+			],
+		},
+		{ kind: 'number', key: 'customImpactDuration', label: '表示時間 (秒)', min: 0.1, max: 3, step: 0.05 },
+		{ kind: 'number', key: 'customImpactOpacity', label: '最大不透明度', min: 0.05, max: 1, step: 0.05 },
+		{ kind: 'number', key: 'customImpactStartScale', label: '開始サイズ', min: 0.1, max: 5, step: 0.05 },
+		{ kind: 'number', key: 'customImpactEndScale', label: '終了サイズ', min: 0.1, max: 5, step: 0.05 },
 	],
 	'space-settings': [
 		{ kind: 'number', key: 'trackSpacing', label: 'トラック間隔', min: 0.6, max: 4, step: 0.05 },
@@ -64,13 +122,13 @@ let settings = loadSettings()
 const saveStatus = document.querySelector<HTMLElement>('#save-status')
 
 function isBooleanSetting(
-	definition: NumericSetting | BooleanSetting | ColorSetting,
+	definition: SettingDefinition,
 ): definition is BooleanSetting {
 	return definition.kind === 'boolean'
 }
 
 function isColorSetting(
-	definition: NumericSetting | BooleanSetting | ColorSetting,
+	definition: SettingDefinition,
 ): definition is ColorSetting {
 	return definition.kind === 'color'
 }
@@ -120,6 +178,38 @@ function renderControls(): void {
 					publish()
 				})
 				row.appendChild(input)
+			} else if (definition.kind === 'string') {
+				const input = document.createElement('input')
+				input.type = 'text'
+				input.value = String(settings[definition.key])
+				input.spellcheck = false
+				input.addEventListener('change', () => {
+					const value = normalizePublicFileName(
+						input.value,
+						definition.defaultFileName,
+						definition.defaultExtension,
+					)
+					input.value = value
+					settings = { ...settings, [definition.key]: value }
+					publish()
+				})
+				row.appendChild(input)
+			} else if (definition.kind === 'select') {
+				const select = document.createElement('select')
+
+				for (const optionDefinition of definition.options) {
+					const option = document.createElement('option')
+					option.value = optionDefinition.value
+					option.textContent = optionDefinition.label
+					select.appendChild(option)
+				}
+
+				select.value = String(settings[definition.key])
+				select.addEventListener('change', () => {
+					settings = { ...settings, [definition.key]: select.value }
+					publish()
+				})
+				row.appendChild(select)
 			} else {
 				const control = document.createElement('div')
 				control.className = 'range-control'
@@ -153,16 +243,24 @@ document.querySelector('#reset-settings')?.addEventListener('click', () => {
 })
 
 document.querySelector('#reload-midi')?.addEventListener('click', () => {
-	channel.send({ type: 'reloadMidi' })
+	const fileName = normalizePublicFileName(
+		settings.midiFileName,
+		'input.mid',
+		'.mid',
+	)
+	settings = { ...settings, midiFileName: fileName }
+	publish()
+	renderControls()
+	channel.send({ type: 'reloadMidi', fileName })
 })
 
 channel.subscribe((message) => {
 	if (message.type === 'midiReloaded') {
-		alert('input.midを再読み込みしました。')
+		alert(`${message.fileName}を再読み込みしました。`)
 	}
 
 	if (message.type === 'midiReloadFailed') {
-		alert(`input.midの再読み込みに失敗しました。\n${message.message}`)
+		alert(`${message.fileName}の再読み込みに失敗しました。\n${message.message}`)
 	}
 })
 
