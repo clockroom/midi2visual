@@ -48,6 +48,7 @@
 | `levelMeterOpacity` | `0.8` | `0〜1`, step `0.05` | 全ZoneのOpacityへ乗じる |
 | `levelMeterMaxHeightPercent` | `25` | `10〜50`, step `1` | 発音平面高に対する最大高の割合 |
 | `levelMeterWidthPercent` | `70` | `50〜100`, step `1` | `trackSpacing`に対する幅の割合 |
+| `levelMeterDepthOffset` | `0` | `0〜40`, step `0.5` | 発音平面から時間軸の奥方向への配置距離 |
 | `backgroundTopColor` | `#101b32` | Color | 背景グラデーション上部色 |
 | `backgroundBottomColor` | `#02040b` | Color | 背景下部色とFog色 |
 

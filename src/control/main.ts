@@ -118,6 +118,7 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'levelMeterOpacity', label: '全体の不透明度', min: 0, max: 1, step: 0.05 },
 		{ kind: 'number', key: 'levelMeterMaxHeightPercent', label: '最大高さ (%)', min: 10, max: 50, step: 1 },
 		{ kind: 'number', key: 'levelMeterWidthPercent', label: 'トラック幅比 (%)', min: 50, max: 100, step: 1 },
+		{ kind: 'number', key: 'levelMeterDepthOffset', label: '奥行き位置', min: 0, max: 40, step: 0.5 },
 	],
 	'space-settings': [
 		{ kind: 'number', key: 'trackSpacing', label: 'トラック間隔', min: 0.6, max: 4, step: 0.05 },

@@ -37,6 +37,7 @@ export const defaultSettings: AppSettings = {
 	levelMeterOpacity: 0.8,
 	levelMeterMaxHeightPercent: 25,
 	levelMeterWidthPercent: 70,
+	levelMeterDepthOffset: 0,
 	backgroundTopColor: '#101b32',
 	backgroundBottomColor: '#02040b',
 }

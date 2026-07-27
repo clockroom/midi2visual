@@ -94,7 +94,9 @@
 ## Trackレベルメータ
 
 - 各TrackのX位置へ配置し、発音平面の下辺を始点としてY方向へ伸ばす。
-- Zは`0.025`とし、発音平面とのZ-Fightingを避ける。
+- Zは`0.025 - levelMeterDepthOffset`とし、`0`では発音平面とのZ-Fightingを避けるためわずかに手前へ配置する。
+- `levelMeterDepthOffset`は`0〜40 world units`とし、正の値ほど時間軸の奥へ配置する。
+- 最大値`40`は、BPM 120、`timeUnitsPerSecond=10`で8拍分に相当する距離とする。
 - `PlaneGeometry`をXY平面のまま使用し、Billboard化しない。
 - 1Trackあたり20個の横長矩形を積み上げる。
 - 1区画の高さに対して矩形を`72%`とし、残り`28%`を上下の隙間として見せる。

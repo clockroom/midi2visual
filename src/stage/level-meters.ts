@@ -32,7 +32,7 @@ const SENSITIVE_MEDIUM_SEGMENT_END = 14
 const PEAK_HOLD_SECONDS = 0.08
 const RELEASE_SECONDS = 0.52
 const SEGMENT_HEIGHT_RATIO = 0.72
-const METER_Z = 0.025
+const Z_FIGHTING_OFFSET = 0.025
 const INACTIVE_SCALE = 0.000001
 
 const WHITE_METER_COLOR = 0xf4f8ff
@@ -317,7 +317,7 @@ export class TrackLevelMeters {
 					this.position.set(
 						trackIndex * this.layout.trackSpacing,
 						this.layout.bottomY + (segmentIndex + 0.5) * cellHeight,
-						METER_Z,
+						Z_FIGHTING_OFFSET - this.settings.levelMeterDepthOffset,
 					)
 					this.scale.set(
 						active ? meterWidth : INACTIVE_SCALE,
