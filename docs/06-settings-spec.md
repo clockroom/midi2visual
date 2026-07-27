@@ -93,7 +93,7 @@
 - 現在のカメラ角度と初期距離に対するズーム比は可能な限り維持する。
 - 発音エフェクトのON/OFFは次のNote Onから反映し、OFFにした種類のActive Effectも破棄する。
 - カスタム画像名または表示フラグを変更した場合はTextureを再取得する。
-- `midiFileName`の変更だけでは再解析せず、「MIDIを再読み込み」または映像画面の`R`で反映する。
+- `midiFileName`の変更だけでは再解析せず、ファイル設定エリアの「MIDIを再読み込み」または映像画面の`R`で反映する。
 - レベルメータ設定は既存InstanceのMaterial、色、配置、Scaleへ即時反映する。
 - 感度変更時はZoneごとのInstance数が変わるため、3つのInstancedMeshを再構築する。
 - レベルメータをOFFにした場合は全Trackの状態をゼロへ戻す。

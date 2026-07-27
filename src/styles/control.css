@@ -102,6 +102,12 @@ button {
 	gap: 0.95rem;
 }
 
+.file-actions {
+	display: flex;
+	justify-content: flex-end;
+	margin-top: 1rem;
+}
+
 .field-row {
 	display: grid;
 	grid-template-columns: minmax(8rem, 1fr) minmax(11rem, 1.25fr);
