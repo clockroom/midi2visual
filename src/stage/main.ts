@@ -27,6 +27,16 @@ let model: MidiModel | null = null
 let timeline: PlaybackTimeline | null = null
 const visualizer = new MidiVisualizer(stage, settings)
 const channel = new AppChannel()
+const pressedCameraKeys = new Set<string>()
+let previousFrameMilliseconds: number | null = null
+const cameraControlCodes = new Set([
+	'ArrowLeft',
+	'ArrowRight',
+	'ArrowUp',
+	'ArrowDown',
+	'KeyW',
+	'KeyS',
+])
 
 async function reloadMidi(notifyControl = false): Promise<void> {
 	loading.hidden = false
@@ -127,6 +137,26 @@ function updatePlaybackMetrics(songSeconds: number): void {
 }
 
 function animate(nowMilliseconds: number): void {
+	const deltaSeconds =
+		previousFrameMilliseconds === null
+			? 0
+			: Math.min((nowMilliseconds - previousFrameMilliseconds) / 1000, 0.1)
+	previousFrameMilliseconds = nowMilliseconds
+	const horizontalDirection =
+		Number(pressedCameraKeys.has('ArrowRight')) -
+		Number(pressedCameraKeys.has('ArrowLeft'))
+	const verticalDirection =
+		Number(pressedCameraKeys.has('ArrowUp')) -
+		Number(pressedCameraKeys.has('ArrowDown'))
+	const zoomDirection =
+		Number(pressedCameraKeys.has('KeyW')) -
+		Number(pressedCameraKeys.has('KeyS'))
+	visualizer.updateCameraControls(
+		horizontalDirection,
+		verticalDirection,
+		zoomDirection,
+		deltaSeconds,
+	)
 	const songSeconds = timeline?.update(nowMilliseconds) ?? -settings.preRollSeconds
 	visualizer.render(songSeconds)
 	updatePlaybackMetrics(songSeconds)
@@ -134,6 +164,19 @@ function animate(nowMilliseconds: number): void {
 }
 
 window.addEventListener('keydown', (event) => {
+	if (cameraControlCodes.has(event.code)) {
+		event.preventDefault()
+		pressedCameraKeys.add(event.code)
+	}
+
+	if (event.code === 'Digit0') {
+		event.preventDefault()
+
+		if (!event.repeat) {
+			visualizer.resetCamera()
+		}
+	}
+
 	if (event.repeat) {
 		return
 	}
@@ -150,6 +193,18 @@ window.addEventListener('keydown', (event) => {
 	if (event.code === 'KeyR') {
 		void reloadMidi()
 	}
+})
+
+window.addEventListener('keyup', (event) => {
+	if (cameraControlCodes.has(event.code)) {
+		event.preventDefault()
+		pressedCameraKeys.delete(event.code)
+	}
+})
+
+window.addEventListener('blur', () => {
+	pressedCameraKeys.clear()
+	previousFrameMilliseconds = null
 })
 
 channel.subscribe((message) => {

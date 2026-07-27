@@ -9,6 +9,13 @@ interface NoteObject {
 
 const PITCH_PADDING = 3
 const PITCH_STEP = 0.34
+const HORIZONTAL_LIMIT = THREE.MathUtils.degToRad(60)
+const MIN_VERTICAL_ANGLE = THREE.MathUtils.degToRad(-45)
+const MAX_VERTICAL_ANGLE = THREE.MathUtils.degToRad(60)
+const ORBIT_SPEED = THREE.MathUtils.degToRad(35)
+const ZOOM_SPEED_RATIO = 0.8
+const MIN_DISTANCE_RATIO = 0.2
+const MAX_DISTANCE_RATIO = 4
 const TRACK_PALETTE = [
 	0x55d8ff,
 	0x8c7bff,
@@ -36,6 +43,13 @@ export class MidiVisualizer {
 	private worldHeight = 1
 	private centerX = 0
 	private centerY = 0
+	private readonly cameraTarget = new THREE.Vector3()
+	private orbitAzimuth = 0
+	private orbitElevation = 0
+	private orbitDistance = 1
+	private initialOrbitElevation = 0
+	private initialOrbitDistance = 1
+	private cameraOrbitInitialized = false
 
 	constructor(container: HTMLElement, settings: AppSettings) {
 		this.settings = settings
@@ -74,7 +88,7 @@ export class MidiVisualizer {
 		this.buildFrames()
 		this.buildPlayhead()
 		this.buildParticles()
-		this.updateCamera()
+		this.updateCamera(true)
 	}
 
 	applySettings(settings: AppSettings): void {
@@ -124,7 +138,59 @@ export class MidiVisualizer {
 		}
 
 		this.applyBackground()
-		this.updateCamera()
+		this.updateCamera(false)
+	}
+
+	updateCameraControls(
+		horizontalDirection: number,
+		verticalDirection: number,
+		zoomDirection: number,
+		deltaSeconds: number,
+	): void {
+		if (!this.model || !this.cameraOrbitInitialized) {
+			return
+		}
+
+		if (
+			horizontalDirection === 0 &&
+			verticalDirection === 0 &&
+			zoomDirection === 0
+		) {
+			return
+		}
+
+		const safeDeltaSeconds = THREE.MathUtils.clamp(deltaSeconds, 0, 0.1)
+
+		// Update the horizontal and vertical angles independently, then rebuild the
+		// camera position from spherical coordinates to prevent accumulated roll.
+		this.orbitAzimuth = THREE.MathUtils.clamp(
+			this.orbitAzimuth + horizontalDirection * ORBIT_SPEED * safeDeltaSeconds,
+			-HORIZONTAL_LIMIT,
+			HORIZONTAL_LIMIT,
+		)
+		this.orbitElevation = THREE.MathUtils.clamp(
+			this.orbitElevation + verticalDirection * ORBIT_SPEED * safeDeltaSeconds,
+			MIN_VERTICAL_ANGLE,
+			MAX_VERTICAL_ANGLE,
+		)
+		this.orbitDistance = THREE.MathUtils.clamp(
+			this.orbitDistance -
+				zoomDirection * this.initialOrbitDistance * ZOOM_SPEED_RATIO * safeDeltaSeconds,
+			this.initialOrbitDistance * MIN_DISTANCE_RATIO,
+			this.initialOrbitDistance * MAX_DISTANCE_RATIO,
+		)
+		this.applyCameraTransform()
+	}
+
+	resetCamera(): void {
+		if (!this.model || !this.cameraOrbitInitialized) {
+			return
+		}
+
+		this.orbitAzimuth = 0
+		this.orbitElevation = this.initialOrbitElevation
+		this.orbitDistance = this.initialOrbitDistance
+		this.applyCameraTransform()
 	}
 
 	render(songSeconds: number): void {
@@ -152,7 +218,7 @@ export class MidiVisualizer {
 		const height = window.innerHeight
 		this.renderer.setSize(width, height)
 		this.camera.aspect = width / Math.max(height, 1)
-		this.updateCamera()
+		this.updateCamera(false)
 	}
 
 	private recalculateWorld(): void {
@@ -363,29 +429,64 @@ export class MidiVisualizer {
 		this.particlePoints.rotation.z = songSeconds * 0.002
 	}
 
-	private updateCamera(): void {
+	private updateCamera(resetOrbit: boolean): void {
 		if (!this.model) {
 			return
 		}
 
+		const previousInitialDistance = this.initialOrbitDistance
+		const previousDistanceRatio =
+			previousInitialDistance > 0 ? this.orbitDistance / previousInitialDistance : 1
 		this.camera.fov = this.settings.cameraFov
 		this.camera.aspect = window.innerWidth / Math.max(window.innerHeight, 1)
 		this.camera.near = 0.1
-		this.camera.far = 500
 		const verticalFov = THREE.MathUtils.degToRad(this.camera.fov)
 		const horizontalFov = 2 * Math.atan(Math.tan(verticalFov / 2) * this.camera.aspect)
 		const fitHeightDistance = (this.worldHeight / 2) / Math.tan(verticalFov / 2)
 		const fitWidthDistance = (this.worldWidth / 2) / Math.tan(horizontalFov / 2)
-		const distance = Math.max(fitHeightDistance, fitWidthDistance) * 1.3 + 5
-		const lookAheadDepth = this.settings.lookAheadSeconds * this.settings.timeUnitsPerSecond
+		const forwardDistance = Math.max(fitHeightDistance, fitWidthDistance) * 1.3 + 5
+		const verticalOffset = this.worldHeight * 0.1
+		this.cameraTarget.set(this.centerX, this.centerY, 0)
+		this.initialOrbitDistance = Math.hypot(forwardDistance, verticalOffset)
+		this.initialOrbitElevation = Math.atan2(verticalOffset, forwardDistance)
+		this.camera.far = Math.max(
+			500,
+			this.initialOrbitDistance * MAX_DISTANCE_RATIO +
+				this.settings.lookAheadSeconds * this.settings.timeUnitsPerSecond * 2,
+		)
+
+		if (resetOrbit || !this.cameraOrbitInitialized) {
+			this.orbitAzimuth = 0
+			this.orbitElevation = this.initialOrbitElevation
+			this.orbitDistance = this.initialOrbitDistance
+			this.cameraOrbitInitialized = true
+		} else {
+			this.orbitDistance = THREE.MathUtils.clamp(
+				this.initialOrbitDistance * previousDistanceRatio,
+				this.initialOrbitDistance * MIN_DISTANCE_RATIO,
+				this.initialOrbitDistance * MAX_DISTANCE_RATIO,
+			)
+			this.orbitElevation = THREE.MathUtils.clamp(
+				this.orbitElevation,
+				MIN_VERTICAL_ANGLE,
+				MAX_VERTICAL_ANGLE,
+			)
+		}
+
+		this.camera.updateProjectionMatrix()
+		this.applyCameraTransform()
+	}
+
+	private applyCameraTransform(): void {
+		const horizontalDistance = this.orbitDistance * Math.cos(this.orbitElevation)
 
 		this.camera.position.set(
-			this.centerX,
-			this.centerY + this.worldHeight * 0.1,
-			distance,
+			this.cameraTarget.x + horizontalDistance * Math.sin(this.orbitAzimuth),
+			this.cameraTarget.y + this.orbitDistance * Math.sin(this.orbitElevation),
+			this.cameraTarget.z + horizontalDistance * Math.cos(this.orbitAzimuth),
 		)
-		this.camera.lookAt(this.centerX, this.centerY, -lookAheadDepth * 0.32)
-		this.camera.updateProjectionMatrix()
+		this.camera.up.set(0, 1, 0)
+		this.camera.lookAt(this.cameraTarget)
 	}
 
 	private applyBackground(): void {
