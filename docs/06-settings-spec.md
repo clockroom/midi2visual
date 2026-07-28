@@ -30,6 +30,10 @@
 | `longNoteFadeEnabled` | `true` | ON/OFF | 長いノートをNote Off前に自動Fadeする |
 | `longNoteFadeStartBeats` | `2` | `1〜32`, step `0.5` | Note OnからFade開始までの拍数 |
 | `longNoteFadeDurationBeats` | `6` | `0.5〜64`, step `0.5` | Fade開始から完全消失までの拍数 |
+| `showLongNoteDissolve` | `true` | ON/OFF | 実Fade時間の50%地点でバーを粒子へ置換する |
+| `longNoteDissolveRangePercent` | `60` | `10〜100`, step `5` | ノート長に対する粒子化範囲の上限割合 |
+| `longNoteDissolveMaxParticlesPerNote` | `32` | `8〜256`, step `8` | 1ノートの粒子化で生成する最大粒子数 |
+| `longNoteDissolveParticleSize` | `10` | `2〜32`, step `1` | 距離減衰しないScreen Space基準の粒子サイズ (px) |
 | `cameraFov` | `48` | `25〜80`, step `1` | Perspective Cameraの垂直FOV |
 | `showMeasureFrames` | `true` | ON/OFF | 小節枠を生成・表示する |
 | `showBeatFrames` | `false` | ON/OFF | 小節頭以外の拍枠を生成・表示する |

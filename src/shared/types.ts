@@ -14,6 +14,10 @@ export interface AppSettings {
 	longNoteFadeEnabled: boolean
 	longNoteFadeStartBeats: number
 	longNoteFadeDurationBeats: number
+	showLongNoteDissolve: boolean
+	longNoteDissolveRangePercent: number
+	longNoteDissolveMaxParticlesPerNote: number
+	longNoteDissolveParticleSize: number
 	cameraFov: number
 	showMeasureFrames: boolean
 	showBeatFrames: boolean

@@ -2,6 +2,7 @@ import * as THREE from 'three'
 import type { AppSettings, MidiModel, VisualNote } from '../shared/types'
 import { NoteImpactEffects } from './effects'
 import { TrackLevelMeters } from './level-meters'
+import { LongNoteDissolveEffects } from './long-note-dissolve'
 import { TRACK_PALETTE } from './palette'
 
 interface NoteObject {
@@ -9,6 +10,7 @@ interface NoteObject {
 	mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshStandardMaterial>
 	glow: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>
 	distanceVisibilityUniform: { value: number }
+	longDissolveTriggered: boolean
 }
 
 const PITCH_PADDING = 3
@@ -20,6 +22,8 @@ const ORBIT_SPEED = THREE.MathUtils.degToRad(35)
 const ZOOM_SPEED_RATIO = 0.8
 const MIN_DISTANCE_RATIO = 0.2
 const MAX_DISTANCE_RATIO = 4
+const LONG_DISSOLVE_TRIGGER_RATIO = 0.5
+const LONG_DISSOLVE_PARTICLES_PER_BEAT = 6
 export class MidiVisualizer {
 	private readonly scene = new THREE.Scene()
 	private readonly camera = new THREE.PerspectiveCamera()
@@ -30,10 +34,12 @@ export class MidiVisualizer {
 	private readonly effectsGroup = new THREE.Group()
 	private readonly noteObjects: NoteObject[] = []
 	private readonly impactEffects: NoteImpactEffects
+	private readonly longDissolveEffects: LongNoteDissolveEffects
 	private readonly levelMeters: TrackLevelMeters
 	private model: MidiModel | null = null
 	private settings: AppSettings
 	private previousEffectSongSeconds: number | null = null
+	private previousNoteSongTicks: number | null = null
 	private nextEffectNoteIndex = 0
 	private worldWidth = 1
 	private worldHeight = 1
@@ -50,6 +56,10 @@ export class MidiVisualizer {
 	constructor(container: HTMLElement, settings: AppSettings) {
 		this.settings = settings
 		this.impactEffects = new NoteImpactEffects(this.effectsGroup, settings)
+		this.longDissolveEffects = new LongNoteDissolveEffects(
+			this.effectsGroup,
+			settings,
+		)
 		this.levelMeters = new TrackLevelMeters(settings)
 		this.renderer = new THREE.WebGLRenderer({
 			antialias: true,
@@ -84,8 +94,10 @@ export class MidiVisualizer {
 	load(model: MidiModel): void {
 		this.model = model
 		this.impactEffects.clear()
+		this.longDissolveEffects.clear()
 		this.levelMeters.clear()
 		this.previousEffectSongSeconds = null
+		this.previousNoteSongTicks = null
 		this.nextEffectNoteIndex = 0
 		this.clearGroup(this.notesGroup)
 		this.clearGroup(this.framesGroup)
@@ -103,6 +115,27 @@ export class MidiVisualizer {
 		const previous = this.settings
 		this.settings = settings
 		this.impactEffects.applySettings(settings)
+		this.longDissolveEffects.applySettings(settings)
+
+		if (
+			previous.longNoteFadeEnabled !== settings.longNoteFadeEnabled ||
+			previous.longNoteFadeStartBeats !== settings.longNoteFadeStartBeats ||
+			previous.longNoteFadeDurationBeats !==
+				settings.longNoteFadeDurationBeats ||
+			previous.showLongNoteDissolve !== settings.showLongNoteDissolve ||
+			previous.longNoteDissolveRangePercent !==
+				settings.longNoteDissolveRangePercent ||
+			previous.longNoteDissolveMaxParticlesPerNote !==
+				settings.longNoteDissolveMaxParticlesPerNote ||
+			previous.longNoteDissolveParticleSize !==
+				settings.longNoteDissolveParticleSize
+		) {
+			this.longDissolveEffects.clear()
+
+			for (const object of this.noteObjects) {
+				object.longDissolveTriggered = false
+			}
+		}
 
 		if (!this.model) {
 			this.applyBackground()
@@ -125,6 +158,7 @@ export class MidiVisualizer {
 		this.configureLevelMeters()
 
 		if (rebuildNotes) {
+			this.longDissolveEffects.clear()
 			this.clearGroup(this.notesGroup)
 			this.noteObjects.length = 0
 			this.buildNotes()
@@ -209,6 +243,7 @@ export class MidiVisualizer {
 	dispose(): void {
 		window.removeEventListener('resize', this.resize)
 		this.impactEffects.dispose()
+		this.longDissolveEffects.dispose()
 		this.levelMeters.dispose()
 		this.clearGroup(this.scene)
 		this.renderer.dispose()
@@ -318,6 +353,7 @@ export class MidiVisualizer {
 				mesh,
 				glow,
 				distanceVisibilityUniform,
+				longDissolveTriggered: false,
 			})
 		}
 	}
@@ -387,6 +423,19 @@ export class MidiVisualizer {
 
 		const visibleFuture = this.settings.lookAheadSeconds + 2
 		const songTicks = this.secondsToTicks(songSeconds)
+
+		if (
+			this.previousNoteSongTicks !== null &&
+			songTicks < this.previousNoteSongTicks
+		) {
+			this.longDissolveEffects.clear()
+
+			for (const object of this.noteObjects) {
+				object.longDissolveTriggered = false
+			}
+		}
+
+		this.previousNoteSongTicks = songTicks
 		const fadeStartBeats = Math.max(0, this.settings.longNoteFadeStartBeats)
 		const configuredFadeDurationBeats = Math.max(
 			0.000001,
@@ -415,6 +464,39 @@ export class MidiVisualizer {
 			)
 			const longFadeStarted =
 				longFadeApplies && elapsedBeats >= fadeStartBeats
+			const dissolveTriggerBeats =
+				fadeStartBeats +
+				(effectiveFadeEndBeats - fadeStartBeats) *
+					LONG_DISSOLVE_TRIGGER_RATIO
+
+			if (
+				this.settings.showLongNoteDissolve &&
+				longFadeStarted &&
+				elapsedBeats >= dissolveTriggerBeats &&
+				elapsedBeats < effectiveFadeEndBeats &&
+				!object.longDissolveTriggered
+			) {
+				const fadeEndTicks =
+					note.startTicks +
+					effectiveFadeEndBeats * this.model.beatTicks
+				const fadeEndSeconds = this.ticksToSeconds(fadeEndTicks)
+				object.longDissolveTriggered =
+					this.longDissolveEffects.trigger({
+						positions: this.createLongDissolvePositions(
+							note,
+							songSeconds,
+						),
+						color:
+							TRACK_PALETTE[
+								note.trackIndex % TRACK_PALETTE.length
+							],
+						durationSeconds: Math.max(
+							0,
+							fadeEndSeconds - songSeconds,
+						),
+					})
+			}
+
 			const longFadeComplete =
 				longFadeStarted && elapsedBeats >= effectiveFadeEndBeats
 			const endedAfterLongFade = longFadeApplies && timeSinceEnd > 0
@@ -422,7 +504,8 @@ export class MidiVisualizer {
 				timeUntilStart <= visibleFuture &&
 				timeSinceEnd <= this.settings.noteAfterglowSeconds &&
 				!longFadeComplete &&
-				!endedAfterLongFade
+				!endedAfterLongFade &&
+				!object.longDissolveTriggered
 
 			if (!mesh.visible) {
 				glow.visible = false
@@ -503,6 +586,97 @@ export class MidiVisualizer {
 		return marker.ticks + elapsedSeconds * ticksPerSecond
 	}
 
+	private ticksToSeconds(ticks: number): number {
+		if (!this.model) {
+			return 0
+		}
+
+		let low = 0
+		let high = this.model.tempoMarkers.length
+
+		while (low < high) {
+			const middle = Math.floor((low + high) / 2)
+
+			if (this.model.tempoMarkers[middle].ticks <= ticks) {
+				low = middle + 1
+			} else {
+				high = middle
+			}
+		}
+
+		const marker = this.model.tempoMarkers[Math.max(0, low - 1)]
+		const elapsedTicks = ticks - marker.ticks
+		const ticksPerSecond = (this.model.ppq * marker.bpm) / 60
+
+		return marker.seconds + elapsedTicks / ticksPerSecond
+	}
+
+	private createLongDissolvePositions(
+		note: VisualNote,
+		songSeconds: number,
+	): THREE.Vector3[] {
+		if (!this.model) {
+			return []
+		}
+
+		const rangeRatio = THREE.MathUtils.clamp(
+			this.settings.longNoteDissolveRangePercent / 100,
+			0.1,
+			1,
+		)
+		const visibleFarTicks = this.secondsToTicks(
+			songSeconds + this.settings.lookAheadSeconds,
+		)
+		const rangeEndTicks = Math.min(note.endTicks, visibleFarTicks)
+		const requestedRangeTicks =
+			(note.endTicks - note.startTicks) * rangeRatio
+		const rangeStartTicks = Math.max(
+			note.startTicks,
+			rangeEndTicks - requestedRangeTicks,
+		)
+		const rangeBeats =
+			(rangeEndTicks - rangeStartTicks) / this.model.beatTicks
+		const maxParticlesPerNote = THREE.MathUtils.clamp(
+			Math.round(this.settings.longNoteDissolveMaxParticlesPerNote),
+			1,
+			512,
+		)
+		const particleCount = Math.min(
+			maxParticlesPerNote,
+			Math.max(
+				1,
+				Math.ceil(
+					rangeBeats * LONG_DISSOLVE_PARTICLES_PER_BEAT,
+				),
+			),
+		)
+		const positions: THREE.Vector3[] = []
+		const crossSectionJitter = this.settings.noteSize * 0.38
+
+		for (let index = 0; index < particleCount; index += 1) {
+			const intervalProgress =
+				(index + Math.random()) / particleCount
+			const particleTicks = THREE.MathUtils.lerp(
+				rangeStartTicks,
+				rangeEndTicks,
+				intervalProgress,
+			)
+			const particleSeconds = this.ticksToSeconds(particleTicks)
+			positions.push(
+				new THREE.Vector3(
+					note.trackIndex * this.settings.trackSpacing +
+						(Math.random() - 0.5) * crossSectionJitter,
+					this.pitchToY(note.pitch) +
+						(Math.random() - 0.5) * crossSectionJitter,
+					(songSeconds - particleSeconds) *
+						this.settings.timeUnitsPerSecond,
+				),
+			)
+		}
+
+		return positions
+	}
+
 	private updateNoteOnReactions(songSeconds: number): void {
 		if (!this.model) {
 			return
@@ -542,6 +716,7 @@ export class MidiVisualizer {
 
 		const deltaSeconds = songSeconds - this.previousEffectSongSeconds
 		this.impactEffects.update(deltaSeconds)
+		this.longDissolveEffects.update(deltaSeconds)
 		this.levelMeters.update(deltaSeconds)
 		this.previousEffectSongSeconds = songSeconds
 	}

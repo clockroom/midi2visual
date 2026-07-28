@@ -77,6 +77,10 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'boolean', key: 'longNoteFadeEnabled', label: 'ロングトーン自動Fade' },
 		{ kind: 'number', key: 'longNoteFadeStartBeats', label: 'Fade開始 (拍)', min: 1, max: 32, step: 0.5 },
 		{ kind: 'number', key: 'longNoteFadeDurationBeats', label: 'Fade時間 (拍)', min: 0.5, max: 64, step: 0.5 },
+		{ kind: 'boolean', key: 'showLongNoteDissolve', label: 'ロングトーン粒子化' },
+		{ kind: 'number', key: 'longNoteDissolveRangePercent', label: '粒子化範囲 (%)', min: 10, max: 100, step: 5 },
+		{ kind: 'number', key: 'longNoteDissolveMaxParticlesPerNote', label: '1ノート最大粒子数', min: 8, max: 256, step: 8 },
+		{ kind: 'number', key: 'longNoteDissolveParticleSize', label: '粒子サイズ (px)', min: 2, max: 32, step: 1 },
 	],
 	'effect-settings': [
 		{ kind: 'boolean', key: 'showCoreFlash', label: 'コアフラッシュ' },

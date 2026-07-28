@@ -127,6 +127,14 @@ Three.jsへ依存しません。
 - 曲時刻に追従した移動、Scale、Opacity更新
 - Active EffectとTextureのDispose
 
+### `stage/long-note-dissolve.ts`
+
+- `spark.png`の非同期読み込み
+- ロングトーン粒子Burstの生成
+- `THREE.Points`内の粒子位置、Opacity、Size更新
+- Active粒子数の上限制御
+- Three.js ResourceのDispose
+
 ### `stage/level-meters.ts`
 
 - TrackごとのVelocity Envelope
