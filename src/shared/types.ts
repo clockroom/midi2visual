@@ -11,6 +11,9 @@ export interface AppSettings {
 	noteDistanceVisibility: number
 	noteGlowIntensity: number
 	noteAfterglowSeconds: number
+	longNoteFadeEnabled: boolean
+	longNoteFadeStartBeats: number
+	longNoteFadeDurationBeats: number
 	cameraFov: number
 	showMeasureFrames: boolean
 	showBeatFrames: boolean
@@ -55,6 +58,7 @@ export interface TimelineMarker {
 
 export interface TempoMarker {
 	seconds: number
+	ticks: number
 	bpm: number
 }
 
@@ -65,6 +69,8 @@ export interface MidiModel {
 	maxPitch: number
 	durationSeconds: number
 	durationTicks: number
+	ppq: number
+	beatTicks: number
 	numerator: number
 	denominator: number
 	totalMeasures: number

@@ -16,6 +16,9 @@ export const defaultSettings: AppSettings = {
 	noteDistanceVisibility: 0.8,
 	noteGlowIntensity: 1.7,
 	noteAfterglowSeconds: 0.3,
+	longNoteFadeEnabled: true,
+	longNoteFadeStartBeats: 2,
+	longNoteFadeDurationBeats: 6,
 	cameraFov: 48,
 	showMeasureFrames: true,
 	showBeatFrames: false,
@@ -62,6 +65,7 @@ export function loadSettings(): AppSettings {
 
 		const savedSettings = { ...parsed }
 		delete savedSettings.backgroundParticleCount
+		delete savedSettings.longNoteFadeEndBeats
 
 		return {
 			...structuredClone(defaultSettings),

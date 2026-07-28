@@ -74,6 +74,9 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'noteDistanceVisibility', label: '遠方ノート視認性', min: 0, max: 1, step: 0.05 },
 		{ kind: 'number', key: 'noteGlowIntensity', label: '発音時の発光', min: 0, max: 4, step: 0.05 },
 		{ kind: 'number', key: 'noteAfterglowSeconds', label: '残光 (秒)', min: 0.05, max: 2, step: 0.05 },
+		{ kind: 'boolean', key: 'longNoteFadeEnabled', label: 'ロングトーン自動Fade' },
+		{ kind: 'number', key: 'longNoteFadeStartBeats', label: 'Fade開始 (拍)', min: 1, max: 32, step: 0.5 },
+		{ kind: 'number', key: 'longNoteFadeDurationBeats', label: 'Fade時間 (拍)', min: 0.5, max: 64, step: 0.5 },
 	],
 	'effect-settings': [
 		{ kind: 'boolean', key: 'showCoreFlash', label: 'コアフラッシュ' },

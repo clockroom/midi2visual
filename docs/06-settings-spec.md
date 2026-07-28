@@ -27,6 +27,9 @@
 | `noteDistanceVisibility` | `0.8` | `0〜1`, step `0.05` | ノートだけScene Fogの影響を弱める割合。`1`でFogなし |
 | `noteGlowIntensity` | `1.7` | `0〜4`, step `0.05` | 発音中と残光のEmissive倍率 |
 | `noteAfterglowSeconds` | `0.3` | `0.05〜2`, step `0.05` | Note Off後の残光時間 |
+| `longNoteFadeEnabled` | `true` | ON/OFF | 長いノートをNote Off前に自動Fadeする |
+| `longNoteFadeStartBeats` | `2` | `1〜32`, step `0.5` | Note OnからFade開始までの拍数 |
+| `longNoteFadeDurationBeats` | `6` | `0.5〜64`, step `0.5` | Fade開始から完全消失までの拍数 |
 | `cameraFov` | `48` | `25〜80`, step `1` | Perspective Cameraの垂直FOV |
 | `showMeasureFrames` | `true` | ON/OFF | 小節枠を生成・表示する |
 | `showBeatFrames` | `false` | ON/OFF | 小節頭以外の拍枠を生成・表示する |

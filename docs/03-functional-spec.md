@@ -98,6 +98,17 @@
 - Fog適用前後のノート色をShader内で補間し、近距離ノートのEmissiveを増やさずに遠方のTrack色を保つ。
 - 背景、枠、発音エフェクトのFogには影響しない。
 
+## ロングトーン自動Fade
+
+- `longNoteFadeEnabled`がONの場合、Note Onからの経過拍数でロングトーンを判定する。
+- ノート長が`longNoteFadeStartBeats`を超えるノートだけを対象とする。
+- 初期値では2拍目からノート本体とGlowのFadeを開始し、そこから6拍かけて完全に非表示にする。
+- Fade完了拍は`min(longNoteFadeStartBeats + longNoteFadeDurationBeats, ノート長)`とし、Note Offより後までFadeを継続しない。
+- Fade時間はFade開始位置からの相対拍数として設定し、Note Onからの絶対的な完全消失拍は設定しない。
+- 一度対象になったノートは、Note Off後の通常残光へ遷移させない。
+- 現在拍はTempo Map、PPQ、現在時刻からTickへ逆変換して求める。
+- 粒子化や破砕エフェクトは現段階では実装しない。
+
 ## Trackレベルメータ
 
 - ノートを持つTrackごとに、発音平面下端から上へ伸びるレベルメータを表示する。

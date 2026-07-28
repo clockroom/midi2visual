@@ -61,6 +61,16 @@
 - `noteAfterglowSeconds`の間、発光と不透明度を線形に減衰する。
 - 残光中のEmissive強度も`noteBaseEmissiveIntensity`を下回らない。
 - 残光終了後は非表示範囲へ流れる。
+- ロングトーン自動Fade対象のノートには、この通常残光を適用しない。
+
+### ロングトーン自動Fade
+
+- ノート長がFade開始拍を超える場合だけ適用する。
+- Note OnからFade開始拍までは通常の発音中表示とする。
+- Fade開始から`longNoteFadeDurationBeats`の間、ノート本体とGlowのOpacityを線形に減衰する。
+- Fade開始から設定拍数が経過するよりNote Offが早い場合は、Note Offへ向けてFade区間を短縮する。
+- 完全消失後はNote OffまでMeshを非表示のまま維持する。
+- 直方体の長さや位置は変更せず、ノート全体のOpacityを減衰する。
 
 ## Note Onエフェクト
 

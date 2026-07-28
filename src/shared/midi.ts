@@ -93,7 +93,9 @@ export async function loadMidiModel(fileName: string): Promise<MidiModel> {
 		})
 	}
 
-	const tempoMarkers: TempoMarker[] = [{ seconds: 0, bpm: DEFAULT_BPM }]
+	const tempoMarkers: TempoMarker[] = [
+		{ seconds: 0, ticks: 0, bpm: DEFAULT_BPM },
+	]
 	const tempoEvents = midi.header.tempos
 		.slice()
 		.sort((left, right) => left.ticks - right.ticks)
@@ -101,6 +103,7 @@ export async function loadMidiModel(fileName: string): Promise<MidiModel> {
 	for (const tempo of tempoEvents) {
 		const marker = {
 			seconds: midi.header.ticksToSeconds(tempo.ticks),
+			ticks: tempo.ticks,
 			bpm: tempo.bpm,
 		}
 		const previous = tempoMarkers[tempoMarkers.length - 1]
@@ -119,6 +122,8 @@ export async function loadMidiModel(fileName: string): Promise<MidiModel> {
 		maxPitch,
 		durationSeconds,
 		durationTicks,
+		ppq: midi.header.ppq,
+		beatTicks,
 		numerator,
 		denominator,
 		totalMeasures,

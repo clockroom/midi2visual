@@ -381,7 +381,19 @@ export class MidiVisualizer {
 	}
 
 	private updateNotes(songSeconds: number): void {
+		if (!this.model) {
+			return
+		}
+
 		const visibleFuture = this.settings.lookAheadSeconds + 2
+		const songTicks = this.secondsToTicks(songSeconds)
+		const fadeStartBeats = Math.max(0, this.settings.longNoteFadeStartBeats)
+		const configuredFadeDurationBeats = Math.max(
+			0.000001,
+			this.settings.longNoteFadeDurationBeats,
+		)
+		const configuredFadeEndBeats =
+			fadeStartBeats + configuredFadeDurationBeats
 
 		for (const object of this.noteObjects) {
 			const { note, mesh, glow, distanceVisibilityUniform } = object
@@ -391,16 +403,53 @@ export class MidiVisualizer {
 			const active = songSeconds >= note.startSeconds && songSeconds <= note.endSeconds
 			const afterglow =
 				timeSinceEnd > 0 && timeSinceEnd <= this.settings.noteAfterglowSeconds
+			const durationBeats =
+				(note.endTicks - note.startTicks) / this.model.beatTicks
+			const elapsedBeats = (songTicks - note.startTicks) / this.model.beatTicks
+			const longFadeApplies =
+				this.settings.longNoteFadeEnabled &&
+				durationBeats > fadeStartBeats
+			const effectiveFadeEndBeats = Math.min(
+				configuredFadeEndBeats,
+				durationBeats,
+			)
+			const longFadeStarted =
+				longFadeApplies && elapsedBeats >= fadeStartBeats
+			const longFadeComplete =
+				longFadeStarted && elapsedBeats >= effectiveFadeEndBeats
+			const endedAfterLongFade = longFadeApplies && timeSinceEnd > 0
 			mesh.visible =
 				timeUntilStart <= visibleFuture &&
-				timeSinceEnd <= this.settings.noteAfterglowSeconds
+				timeSinceEnd <= this.settings.noteAfterglowSeconds &&
+				!longFadeComplete &&
+				!endedAfterLongFade
 
 			if (!mesh.visible) {
 				glow.visible = false
 				continue
 			}
 
-			if (active) {
+			if (active && longFadeStarted) {
+				const velocity = THREE.MathUtils.clamp(note.velocity, 0, 1)
+				const fadeDurationBeats = Math.max(
+					0.000001,
+					effectiveFadeEndBeats - fadeStartBeats,
+				)
+				const fadeProgress = THREE.MathUtils.clamp(
+					(elapsedBeats - fadeStartBeats) / fadeDurationBeats,
+					0,
+					1,
+				)
+				const remaining = 1 - fadeProgress
+				mesh.material.emissiveIntensity = Math.max(
+					this.settings.noteBaseEmissiveIntensity,
+					this.settings.noteGlowIntensity * (0.45 + velocity),
+				)
+				mesh.material.opacity =
+					Math.min(1, this.settings.noteOpacity + 0.16) * remaining
+				glow.material.opacity = (0.1 + velocity * 0.25) * remaining
+				glow.visible = remaining > 0
+			} else if (active) {
 				const velocity = THREE.MathUtils.clamp(note.velocity, 0, 1)
 				mesh.material.emissiveIntensity = Math.max(
 					this.settings.noteBaseEmissiveIntensity,
@@ -426,6 +475,32 @@ export class MidiVisualizer {
 				glow.visible = false
 			}
 		}
+	}
+
+	private secondsToTicks(seconds: number): number {
+		if (!this.model) {
+			return 0
+		}
+
+		const timelineSeconds = Math.max(0, seconds)
+		let low = 0
+		let high = this.model.tempoMarkers.length
+
+		while (low < high) {
+			const middle = Math.floor((low + high) / 2)
+
+			if (this.model.tempoMarkers[middle].seconds <= timelineSeconds) {
+				low = middle + 1
+			} else {
+				high = middle
+			}
+		}
+
+		const marker = this.model.tempoMarkers[Math.max(0, low - 1)]
+		const elapsedSeconds = timelineSeconds - marker.seconds
+		const ticksPerSecond = (this.model.ppq * marker.bpm) / 60
+
+		return marker.ticks + elapsedSeconds * ticksPerSecond
 	}
 
 	private updateNoteOnReactions(songSeconds: number): void {

@@ -69,6 +69,8 @@ interface VisualNote {
 
 正規化後の配列は`startSeconds`順へ並べる。描画側はMIDIイベントの対応付けを行わない。
 
+`MidiModel`には元SMFの`ppq`と、先頭Time Signatureから算出した`beatTicks`も保持する。Tempo Markerは`seconds`、`ticks`、`bpm`を保持し、ロングトーン自動Fadeで現在時刻をTickへ逆変換するために使用する。
+
 ## 曲長
 
 - `durationSeconds`は全ノートの最大`endSeconds`とする。
