@@ -381,7 +381,6 @@ export class MidiVisualizer {
 	}
 
 	private updateNotes(songSeconds: number): void {
-		const visiblePast = this.settings.noteAfterglowSeconds + 0.2
 		const visibleFuture = this.settings.lookAheadSeconds + 2
 
 		for (const object of this.noteObjects) {
@@ -392,7 +391,9 @@ export class MidiVisualizer {
 			const active = songSeconds >= note.startSeconds && songSeconds <= note.endSeconds
 			const afterglow =
 				timeSinceEnd > 0 && timeSinceEnd <= this.settings.noteAfterglowSeconds
-			mesh.visible = timeUntilStart <= visibleFuture && timeSinceEnd <= visiblePast
+			mesh.visible =
+				timeUntilStart <= visibleFuture &&
+				timeSinceEnd <= this.settings.noteAfterglowSeconds
 
 			if (!mesh.visible) {
 				glow.visible = false
