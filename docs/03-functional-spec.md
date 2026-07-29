@@ -110,11 +110,14 @@
 
 ### ロングトーン粒子化
 
-- `showLongNoteDissolve`がONの場合、実際のFade区間の50%地点で一度だけ粒子化する。
+- `showLongNoteDissolve`がONの場合、実際のFade区間内の`longNoteDissolveTimingPercent`位置で一度だけ粒子化する。
+- 粒子化タイミングの初期値は`50%`とし、Fade区間の始端を`0%`、終端を`100%`として扱う。
 - 実際のFade区間は、設定Fade時間とFade開始からNote Offまでの短い方とする。
 - 粒子化成功時にノート本体とGlowを即座に非表示とし、以降は再表示しない。
 - 粒子は残りの実Fade時間で拡散しながら完全に消える。
 - 残り時間が`0.15秒`未満の場合、粒子化を省略して通常のFadeを継続する。
+- `showLongNoteDissolvePreFlash`がONの場合、粒子化の`longNoteDissolvePreFlashSeconds`前から発光を急速に強める。
+- 事前発光は粒子Textureが読込済みで、粒子表示に必要な残り時間を確保できる場合だけ実行する。
 - 希望粒子化範囲はノート全長の`longNoteDissolveRangePercent`とし、初期値を`60%`とする。
 - 範囲の奥端はNote Off位置と現在の表示最奥位置の近い方とする。
 - 範囲の手前端はNote On位置より前へ出さず、発音平面では切り詰めない。

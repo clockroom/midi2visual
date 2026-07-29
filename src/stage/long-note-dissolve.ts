@@ -47,12 +47,19 @@ export class LongNoteDissolveEffects {
 		}
 	}
 
+	canTrigger(durationSeconds: number): boolean {
+		return (
+			this.settings.showLongNoteDissolve &&
+			this.sparkTexture !== null &&
+			durationSeconds >= MIN_BURST_DURATION_SECONDS
+		)
+	}
+
 	trigger(request: LongNoteDissolveRequest): boolean {
 		if (
-			!this.settings.showLongNoteDissolve ||
-			!this.sparkTexture ||
+			!this.canTrigger(request.durationSeconds) ||
 			request.positions.length === 0 ||
-			request.durationSeconds < MIN_BURST_DURATION_SECONDS
+			!this.sparkTexture
 		) {
 			return false
 		}

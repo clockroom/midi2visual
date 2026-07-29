@@ -22,7 +22,6 @@ const ORBIT_SPEED = THREE.MathUtils.degToRad(35)
 const ZOOM_SPEED_RATIO = 0.8
 const MIN_DISTANCE_RATIO = 0.2
 const MAX_DISTANCE_RATIO = 4
-const LONG_DISSOLVE_TRIGGER_RATIO = 0.5
 const LONG_DISSOLVE_PARTICLES_PER_BEAT = 6
 export class MidiVisualizer {
 	private readonly scene = new THREE.Scene()
@@ -123,6 +122,8 @@ export class MidiVisualizer {
 			previous.longNoteFadeDurationBeats !==
 				settings.longNoteFadeDurationBeats ||
 			previous.showLongNoteDissolve !== settings.showLongNoteDissolve ||
+			previous.longNoteDissolveTimingPercent !==
+				settings.longNoteDissolveTimingPercent ||
 			previous.longNoteDissolveRangePercent !==
 				settings.longNoteDissolveRangePercent ||
 			previous.longNoteDissolveMaxParticlesPerNote !==
@@ -464,22 +465,59 @@ export class MidiVisualizer {
 			)
 			const longFadeStarted =
 				longFadeApplies && elapsedBeats >= fadeStartBeats
+			const dissolveTriggerRatio = THREE.MathUtils.clamp(
+				this.settings.longNoteDissolveTimingPercent / 100,
+				0.1,
+				0.9,
+			)
 			const dissolveTriggerBeats =
 				fadeStartBeats +
 				(effectiveFadeEndBeats - fadeStartBeats) *
-					LONG_DISSOLVE_TRIGGER_RATIO
+					dissolveTriggerRatio
+			const fadeEndTicks =
+				note.startTicks +
+				effectiveFadeEndBeats * this.model.beatTicks
+			const dissolveTriggerTicks =
+				note.startTicks +
+				dissolveTriggerBeats * this.model.beatTicks
+			const fadeEndSeconds = this.ticksToSeconds(fadeEndTicks)
+			const dissolveTriggerSeconds = this.ticksToSeconds(
+				dissolveTriggerTicks,
+			)
+			const plannedDissolveDurationSeconds = Math.max(
+				0,
+				fadeEndSeconds - dissolveTriggerSeconds,
+			)
+			const dissolveReady =
+				longFadeStarted &&
+				this.longDissolveEffects.canTrigger(
+					plannedDissolveDurationSeconds,
+				)
+			const preFlashSeconds = THREE.MathUtils.clamp(
+				this.settings.longNoteDissolvePreFlashSeconds,
+				0.05,
+				0.5,
+			)
+			const preFlashProgress =
+				this.settings.showLongNoteDissolvePreFlash &&
+				dissolveReady &&
+				songSeconds < dissolveTriggerSeconds &&
+				songSeconds >= dissolveTriggerSeconds - preFlashSeconds
+					? THREE.MathUtils.clamp(
+							1 -
+								(dissolveTriggerSeconds - songSeconds) /
+									preFlashSeconds,
+							0,
+							1,
+						)
+					: 0
 
 			if (
-				this.settings.showLongNoteDissolve &&
-				longFadeStarted &&
+				dissolveReady &&
 				elapsedBeats >= dissolveTriggerBeats &&
 				elapsedBeats < effectiveFadeEndBeats &&
 				!object.longDissolveTriggered
 			) {
-				const fadeEndTicks =
-					note.startTicks +
-					effectiveFadeEndBeats * this.model.beatTicks
-				const fadeEndSeconds = this.ticksToSeconds(fadeEndTicks)
 				object.longDissolveTriggered =
 					this.longDissolveEffects.trigger({
 						positions: this.createLongDissolvePositions(
@@ -532,6 +570,23 @@ export class MidiVisualizer {
 					Math.min(1, this.settings.noteOpacity + 0.16) * remaining
 				glow.material.opacity = (0.1 + velocity * 0.25) * remaining
 				glow.visible = remaining > 0
+
+				if (preFlashProgress > 0) {
+					const flashStrength = Math.pow(preFlashProgress, 2)
+					mesh.material.emissiveIntensity +=
+						this.settings.noteGlowIntensity * 3 * flashStrength
+					mesh.material.opacity = THREE.MathUtils.lerp(
+						mesh.material.opacity,
+						1,
+						flashStrength * 0.7,
+					)
+					glow.material.opacity = THREE.MathUtils.lerp(
+						glow.material.opacity,
+						1,
+						flashStrength,
+					)
+					glow.visible = true
+				}
 			} else if (active) {
 				const velocity = THREE.MathUtils.clamp(note.velocity, 0, 1)
 				mesh.material.emissiveIntensity = Math.max(

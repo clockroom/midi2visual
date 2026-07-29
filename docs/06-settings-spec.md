@@ -30,7 +30,10 @@
 | `longNoteFadeEnabled` | `true` | ON/OFF | 長いノートをNote Off前に自動Fadeする |
 | `longNoteFadeStartBeats` | `2` | `1〜32`, step `0.5` | Note OnからFade開始までの拍数 |
 | `longNoteFadeDurationBeats` | `6` | `0.5〜64`, step `0.5` | Fade開始から完全消失までの拍数 |
-| `showLongNoteDissolve` | `true` | ON/OFF | 実Fade時間の50%地点でバーを粒子へ置換する |
+| `showLongNoteDissolve` | `true` | ON/OFF | 実Fade区間内でバーを粒子へ置換する |
+| `longNoteDissolveTimingPercent` | `50` | `10〜90`, step `5` | 実Fade区間内の粒子化タイミング |
+| `showLongNoteDissolvePreFlash` | `true` | ON/OFF | 粒子化直前にノート本体とGlowを強く発光させる |
+| `longNoteDissolvePreFlashSeconds` | `0.15` | `0.05〜0.5`, step `0.05` | 粒子化前に発光を強める時間 |
 | `longNoteDissolveRangePercent` | `60` | `10〜100`, step `5` | ノート長に対する粒子化範囲の上限割合 |
 | `longNoteDissolveMaxParticlesPerNote` | `32` | `8〜256`, step `8` | 1ノートの粒子化で生成する最大粒子数 |
 | `longNoteDissolveParticleSize` | `10` | `2〜32`, step `1` | 距離減衰しないScreen Space基準の粒子サイズ (px) |
