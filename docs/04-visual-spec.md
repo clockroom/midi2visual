@@ -44,7 +44,9 @@
 
 - 基本のEmissive強度は`noteBaseEmissiveIntensity`とする。
 - 初期値は`0.55`とし、照明へ依存しない最低発光量として使用する。
-- `distanceVisibility`で、ノート、レベルメータ、カスタム画像エフェクトのFog適用後の色をFog適用前の色へ補間する。
+- `distanceVisibility`で、ノートとレベルメータのFog適用後の色をFog適用前の色へ補間する。
+- Note Onエフェクト4種とロングトーン粒子はFogを常に無効化する。
+- Note Onエフェクト4種はworld space基準のScaleとし、距離による見かけのサイズ変化を維持する。
 - `distanceVisibility`の初期値は`0.8`とする。
 - `noteOpacity`を使用する。
 

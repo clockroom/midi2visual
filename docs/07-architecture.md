@@ -123,7 +123,7 @@ Three.jsへ依存しません。
 
 ### `stage/distance-visibility.ts`
 
-- ノート、レベルメータ、カスタム画像エフェクトで共有するFog軽減Shader処理
+- ノートとレベルメータで共有するFog軽減Shader処理
 - Fog適用前後の色を`distanceVisibility`で補間
 - Material種別ごとのShader Program Cache Key
 
