@@ -24,7 +24,7 @@
 | `noteSize` | `0.4` | `0.05〜1.5`, step `0.01` | 正方形ノート断面の一辺 |
 | `noteOpacity` | `0.82` | `0.1〜1`, step `0.01` | 発音前ノートの基本Opacity |
 | `noteBaseEmissiveIntensity` | `0.55` | `0〜3`, step `0.05` | 未発音・発音中・残光中の最低Emissive強度 |
-| `distanceVisibility` | `0.8` | `0〜1`, step `0.05` | ノートとレベルメータのScene Fogの影響を弱める割合。`1`でFogなし |
+| `distanceVisibility` | `0.8` | `0〜1`, step `0.05` | ノート、レベルメータ、カスタム画像のScene Fogの影響を弱める割合。`1`でFogなし |
 | `noteGlowIntensity` | `1.7` | `0〜4`, step `0.05` | 発音中と残光のEmissive倍率 |
 | `noteAfterglowSeconds` | `0.3` | `0.05〜2`, step `0.05` | Note Off後の残光時間 |
 | `longNoteFadeEnabled` | `true` | ON/OFF | 長いノートをNote Off前に自動Fadeする |
@@ -91,7 +91,7 @@
 
 - 背景色はTextureとFog色を再生成する。
 - ノート基本発光は各ノートMaterialのEmissive強度へ毎フレーム反映する。
-- 遠方視認性はノートとレベルメータのMaterialで共有するShader Uniformへ反映する。
+- 遠方視認性はノート、レベルメータ、カスタム画像のMaterialで共有するShader Uniformへ反映する。
 - 設定画面では「空間とカメラ」へ配置する。
 - 保存済みの`noteDistanceVisibility`は`distanceVisibility`へ移行してから旧キーを破棄する。
 - FOVとレイアウト変更後はカメラの基準距離を再計算する。

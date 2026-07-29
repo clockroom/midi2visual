@@ -93,10 +93,10 @@
 
 ## 遠方視認性
 
-- `distanceVisibility`で、ノートとTrackレベルメータに適用するScene Fogの影響を弱める。
-- `0`では通常どおりScene Fogを適用し、`1`ではノートとレベルメータへのFogを完全に除外する。
+- `distanceVisibility`で、ノート、Trackレベルメータ、カスタム画像エフェクトに適用するScene Fogの影響を弱める。
+- `0`では通常どおりScene Fogを適用し、`1`では対象へのFogを完全に除外する。
 - Fog適用前後の色をShader内で補間し、近距離表示の明るさを増やさずに遠方の色を保つ。
-- 背景、枠、発音エフェクトのFogには影響しない。
+- 背景、枠、組み込み発音エフェクト3種のFogには影響しない。
 - 既存の`noteDistanceVisibility`保存値は`distanceVisibility`へ自動移行する。
 
 ## ロングトーン自動Fade

@@ -1,6 +1,10 @@
 import * as THREE from 'three'
 import { normalizePublicFileName, toPublicFileUrl } from '../shared/public-files'
 import type { AppSettings } from '../shared/types'
+import {
+	applyDistanceVisibility,
+	type DistanceVisibilityUniform,
+} from './distance-visibility'
 
 type EffectKind = 'flash' | 'ring' | 'spark' | 'custom'
 
@@ -44,6 +48,7 @@ export class NoteImpactEffects {
 	private customTexture: THREE.Texture | null = null
 	private customTextureFileName = ''
 	private customLoadGeneration = 0
+	private readonly distanceVisibilityUniform: DistanceVisibilityUniform
 	private settings: AppSettings
 
 	constructor(
@@ -51,6 +56,9 @@ export class NoteImpactEffects {
 		settings: AppSettings,
 	) {
 		this.settings = settings
+		this.distanceVisibilityUniform = {
+			value: settings.distanceVisibility,
+		}
 		void this.loadBuiltInTextures()
 		void this.loadCustomTextureIfNeeded()
 	}
@@ -58,6 +66,7 @@ export class NoteImpactEffects {
 	applySettings(settings: AppSettings): void {
 		const previous = this.settings
 		this.settings = settings
+		this.distanceVisibilityUniform.value = settings.distanceVisibility
 
 		if (previous.showCoreFlash && !settings.showCoreFlash) {
 			this.clearKind('flash')
@@ -368,6 +377,10 @@ export class NoteImpactEffects {
 			color,
 			baseOpacity,
 			THREE.NormalBlending,
+		)
+		applyDistanceVisibility(
+			material,
+			this.distanceVisibilityUniform,
 		)
 		const mesh = new THREE.Mesh(this.planeGeometry, material)
 		mesh.position.set(x, y, 0.1)
