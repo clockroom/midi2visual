@@ -91,12 +91,13 @@
 - ノート自体の最低発光量を調整するための値であり、距離によるFogの影響は変更しない。
 - ノート以外の背景、枠、発音エフェクトの明るさは変更しない。
 
-## 遠方ノート視認性
+## 遠方視認性
 
-- `noteDistanceVisibility`で、ノートにだけ適用するScene Fogの影響を弱める。
-- `0`では通常どおりScene Fogを適用し、`1`ではノートへのFogを完全に除外する。
-- Fog適用前後のノート色をShader内で補間し、近距離ノートのEmissiveを増やさずに遠方のTrack色を保つ。
+- `distanceVisibility`で、ノートとTrackレベルメータに適用するScene Fogの影響を弱める。
+- `0`では通常どおりScene Fogを適用し、`1`ではノートとレベルメータへのFogを完全に除外する。
+- Fog適用前後の色をShader内で補間し、近距離表示の明るさを増やさずに遠方の色を保つ。
 - 背景、枠、発音エフェクトのFogには影響しない。
+- 既存の`noteDistanceVisibility`保存値は`distanceVisibility`へ自動移行する。
 
 ## ロングトーン自動Fade
 

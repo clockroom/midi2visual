@@ -44,6 +44,7 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	├─ settings.ts
 │	│	└─ types.ts
 │	├─ stage/
+│	│	├─ distance-visibility.ts
 │	│	├─ effects.ts
 │	│	├─ level-meters.ts
 │	│	├─ main.ts
@@ -112,13 +113,19 @@ Three.jsへ依存しません。
 ### `stage/visualizer.ts`
 
 - Renderer、Scene、Camera
-- Note MeshとGlow、ノート専用Fog補正Shader
+- Note MeshとGlow
 - 小節枠、拍枠、発音平面
 - 背景、Fog、Light
 - 設定変更時の再構築
 - 球面オービットカメラ
 - ウィンドウリサイズ
 - Three.js ResourceのDispose
+
+### `stage/distance-visibility.ts`
+
+- ノートとレベルメータで共有するFog軽減Shader処理
+- Fog適用前後の色を`distanceVisibility`で補間
+- Material種別ごとのShader Program Cache Key
 
 ### `stage/effects.ts`
 
@@ -143,6 +150,7 @@ Three.jsへ依存しません。
 - 低・中・高の3つの`InstancedMesh`
 - 感度に応じたZone境界の線形補間
 - 色、Opacity、高さ、幅の即時更新
+- 共通Fog軽減Shader Uniformの更新
 
 ### `stage/palette.ts`
 

@@ -44,8 +44,8 @@
 
 - 基本のEmissive強度は`noteBaseEmissiveIntensity`とする。
 - 初期値は`0.55`とし、照明へ依存しない最低発光量として使用する。
-- `noteDistanceVisibility`でFog適用後の色をFog適用前の色へ補間する。
-- `noteDistanceVisibility`の初期値は`0.8`とする。
+- `distanceVisibility`で、ノートとレベルメータのFog適用後の色をFog適用前の色へ補間する。
+- `distanceVisibility`の初期値は`0.8`とする。
 - `noteOpacity`を使用する。
 
 ### 発音中

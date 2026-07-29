@@ -8,7 +8,7 @@ export interface AppSettings {
 	noteSize: number
 	noteOpacity: number
 	noteBaseEmissiveIntensity: number
-	noteDistanceVisibility: number
+	distanceVisibility: number
 	noteGlowIntensity: number
 	noteAfterglowSeconds: number
 	longNoteFadeEnabled: boolean

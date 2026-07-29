@@ -1,5 +1,9 @@
 import * as THREE from 'three'
 import type { AppSettings, MidiModel, VisualNote } from '../shared/types'
+import {
+	applyDistanceVisibility,
+	type DistanceVisibilityUniform,
+} from './distance-visibility'
 import { NoteImpactEffects } from './effects'
 import { TrackLevelMeters } from './level-meters'
 import { LongNoteDissolveEffects } from './long-note-dissolve'
@@ -9,7 +13,7 @@ interface NoteObject {
 	note: VisualNote
 	mesh: THREE.Mesh<THREE.BoxGeometry, THREE.MeshStandardMaterial>
 	glow: THREE.Mesh<THREE.BoxGeometry, THREE.MeshBasicMaterial>
-	distanceVisibilityUniform: { value: number }
+	distanceVisibilityUniform: DistanceVisibilityUniform
 	longDissolveTriggered: boolean
 }
 
@@ -303,33 +307,9 @@ export class MidiVisualizer {
 				depthWrite: false,
 			})
 			const distanceVisibilityUniform = {
-				value: this.settings.noteDistanceVisibility,
+				value: this.settings.distanceVisibility,
 			}
-			material.onBeforeCompile = (shader) => {
-				shader.uniforms.noteDistanceVisibility = distanceVisibilityUniform
-				shader.fragmentShader = shader.fragmentShader
-					.replace(
-						'#include <fog_pars_fragment>',
-						[
-							'#include <fog_pars_fragment>',
-							'uniform float noteDistanceVisibility;',
-						].join('\n'),
-					)
-					.replace(
-						'#include <fog_fragment>',
-						[
-							'vec3 noteColorBeforeFog = gl_FragColor.rgb;',
-							'#include <fog_fragment>',
-							'gl_FragColor.rgb = mix(',
-							'\tgl_FragColor.rgb,',
-							'\tnoteColorBeforeFog,',
-							'\tclamp(noteDistanceVisibility, 0.0, 1.0)',
-							');',
-						].join('\n'),
-					)
-			}
-			material.customProgramCacheKey = () =>
-				'midi2visual-note-distance-visibility-v1'
+			applyDistanceVisibility(material, distanceVisibilityUniform)
 			const mesh = new THREE.Mesh(geometry, material)
 			mesh.position.set(
 				note.trackIndex * this.settings.trackSpacing,
@@ -447,7 +427,7 @@ export class MidiVisualizer {
 
 		for (const object of this.noteObjects) {
 			const { note, mesh, glow, distanceVisibilityUniform } = object
-			distanceVisibilityUniform.value = this.settings.noteDistanceVisibility
+			distanceVisibilityUniform.value = this.settings.distanceVisibility
 			const timeUntilStart = note.startSeconds - songSeconds
 			const timeSinceEnd = songSeconds - note.endSeconds
 			const active = songSeconds >= note.startSeconds && songSeconds <= note.endSeconds

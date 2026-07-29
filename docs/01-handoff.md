@@ -55,6 +55,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/shared/channel.ts` | `BroadcastChannel`の薄いラッパー |
 | `src/stage/timeline.ts` | 実時間基準の再生時刻管理 |
 | `src/stage/visualizer.ts` | Three.jsシーン、ノート、枠、背景、カメラ |
+| `src/stage/distance-visibility.ts` | ノートとレベルメータで共有するFog軽減Shader処理 |
 | `src/stage/effects.ts` | 発音時エフェクトの生成、時間更新、Texture管理 |
 | `src/stage/long-note-dissolve.ts` | ロングトーン粒子Burstの生成、拡散、上限管理 |
 | `src/stage/level-meters.ts` | Trackレベルメータの状態、減衰、InstancedMesh描画 |
@@ -100,7 +101,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - Firefoxで`index.html`が表示される
 - 設定した`public`直下のMIDIが読み込まれる
 - 3種の発音エフェクトを個別にON/OFFできる
-- 遠方ノート視認性を上げると、近距離ノートを白飛びさせずに遠方ノートが見やすくなる
+- 遠方視認性を上げると、近距離表示を白飛びさせずに遠方のノートとレベルメータが見やすくなる
 - ノート基本発光を変更すると、未発音・発音中・残光中の最低発光量が変わる
 - 2拍を超えるノートが2拍目からFadeし、Fade開始から6拍後またはNote Offの早い方で完全に消える
 - ロングトーン自動Fade後にNote Off残光でノートが再表示されない

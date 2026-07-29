@@ -1,5 +1,9 @@
 import * as THREE from 'three'
 import type { AppSettings } from '../shared/types'
+import {
+	applyDistanceVisibility,
+	type DistanceVisibilityUniform,
+} from './distance-visibility'
 import { TRACK_PALETTE } from './palette'
 
 interface MeterState {
@@ -48,12 +52,16 @@ export class TrackLevelMeters {
 	private readonly position = new THREE.Vector3()
 	private readonly scale = new THREE.Vector3()
 	private readonly rotation = new THREE.Quaternion()
+	private readonly distanceVisibilityUniform: DistanceVisibilityUniform
 	private settings: AppSettings
 	private layout: MeterLayout | null = null
 	private instancesDirty = false
 
 	constructor(settings: AppSettings) {
 		this.settings = settings
+		this.distanceVisibilityUniform = {
+			value: settings.distanceVisibility,
+		}
 		this.group.visible = settings.showLevelMeters
 	}
 
@@ -62,6 +70,7 @@ export class TrackLevelMeters {
 		const sensitivityChanged =
 			this.settings.levelMeterSensitivity !== settings.levelMeterSensitivity
 		this.settings = settings
+		this.distanceVisibilityUniform.value = settings.distanceVisibility
 		this.layout = layout
 		this.group.visible = settings.showLevelMeters
 
@@ -228,6 +237,10 @@ export class TrackLevelMeters {
 			depthWrite: false,
 			depthTest: true,
 		})
+		applyDistanceVisibility(
+			material,
+			this.distanceVisibilityUniform,
+		)
 		const mesh = new THREE.InstancedMesh(
 			this.segmentGeometry,
 			material,

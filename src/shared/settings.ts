@@ -13,7 +13,7 @@ export const defaultSettings: AppSettings = {
 	noteSize: 0.4,
 	noteOpacity: 0.82,
 	noteBaseEmissiveIntensity: 0.55,
-	noteDistanceVisibility: 0.8,
+	distanceVisibility: 0.8,
 	noteGlowIntensity: 1.7,
 	noteAfterglowSeconds: 0.3,
 	longNoteFadeEnabled: true,
@@ -73,6 +73,16 @@ export function loadSettings(): AppSettings {
 		const savedSettings = { ...parsed }
 		delete savedSettings.backgroundParticleCount
 		delete savedSettings.longNoteFadeEndBeats
+
+		if (
+			typeof savedSettings.distanceVisibility !== 'number' &&
+			typeof savedSettings.noteDistanceVisibility === 'number'
+		) {
+			savedSettings.distanceVisibility =
+				savedSettings.noteDistanceVisibility
+		}
+
+		delete savedSettings.noteDistanceVisibility
 
 		return {
 			...structuredClone(defaultSettings),

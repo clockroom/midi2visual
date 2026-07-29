@@ -71,7 +71,6 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'noteSize', label: 'ノート断面サイズ', min: 0.05, max: 1.5, step: 0.01 },
 		{ kind: 'number', key: 'noteOpacity', label: 'ノート不透明度', min: 0.1, max: 1, step: 0.01 },
 		{ kind: 'number', key: 'noteBaseEmissiveIntensity', label: 'ノート基本発光', min: 0, max: 3, step: 0.05 },
-		{ kind: 'number', key: 'noteDistanceVisibility', label: '遠方ノート視認性', min: 0, max: 1, step: 0.05 },
 		{ kind: 'number', key: 'noteGlowIntensity', label: '発音時の発光', min: 0, max: 4, step: 0.05 },
 		{ kind: 'number', key: 'noteAfterglowSeconds', label: '残光 (秒)', min: 0.05, max: 2, step: 0.05 },
 		{ kind: 'boolean', key: 'longNoteFadeEnabled', label: 'ロングトーン自動Fade' },
@@ -133,6 +132,7 @@ const groups: Record<string, SettingDefinition[]> = {
 	'space-settings': [
 		{ kind: 'number', key: 'trackSpacing', label: 'トラック間隔', min: 0.6, max: 4, step: 0.05 },
 		{ kind: 'number', key: 'cameraFov', label: 'カメラ視野角', min: 25, max: 80, step: 1 },
+		{ kind: 'number', key: 'distanceVisibility', label: '遠方視認性', min: 0, max: 1, step: 0.05 },
 	],
 	'guide-settings': [
 		{ kind: 'boolean', key: 'showMeasureFrames', label: '小節枠を表示' },
