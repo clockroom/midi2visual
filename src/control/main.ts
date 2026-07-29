@@ -73,6 +73,8 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'noteBaseEmissiveIntensity', label: 'ノート基本発光', min: 0, max: 3, step: 0.05 },
 		{ kind: 'number', key: 'noteGlowIntensity', label: '発音時の発光', min: 0, max: 4, step: 0.05 },
 		{ kind: 'number', key: 'noteAfterglowSeconds', label: '残光 (秒)', min: 0.05, max: 2, step: 0.05 },
+	],
+	'long-note-settings': [
 		{ kind: 'boolean', key: 'longNoteFadeEnabled', label: 'ロングトーン自動Fade' },
 		{ kind: 'number', key: 'longNoteFadeStartBeats', label: 'Fade開始 (拍)', min: 1, max: 32, step: 0.5 },
 		{ kind: 'number', key: 'longNoteFadeDurationBeats', label: 'Fade時間 (拍)', min: 0.5, max: 64, step: 0.5 },
@@ -84,10 +86,12 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'longNoteDissolveMaxParticlesPerNote', label: '1ノート最大粒子数', min: 8, max: 256, step: 8 },
 		{ kind: 'number', key: 'longNoteDissolveParticleSize', label: '粒子サイズ (px)', min: 2, max: 32, step: 1 },
 	],
-	'effect-settings': [
+	'built-in-effect-settings': [
 		{ kind: 'boolean', key: 'showCoreFlash', label: 'コアフラッシュ' },
 		{ kind: 'boolean', key: 'showImpactRing', label: '拡散リング' },
 		{ kind: 'boolean', key: 'showSparks', label: 'スパーク' },
+	],
+	'custom-effect-settings': [
 		{ kind: 'boolean', key: 'showCustomImpactImage', label: 'カスタム画像' },
 		{
 			kind: 'string',
@@ -133,16 +137,14 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'trackSpacing', label: 'トラック間隔', min: 0.6, max: 4, step: 0.05 },
 		{ kind: 'number', key: 'cameraFov', label: 'カメラ視野角', min: 25, max: 80, step: 1 },
 		{ kind: 'number', key: 'distanceVisibility', label: '遠方視認性', min: 0, max: 1, step: 0.05 },
+		{ kind: 'color', key: 'backgroundTopColor', label: '背景上部色' },
+		{ kind: 'color', key: 'backgroundBottomColor', label: '背景下部色' },
 	],
 	'guide-settings': [
 		{ kind: 'boolean', key: 'showMeasureFrames', label: '小節枠を表示' },
 		{ kind: 'boolean', key: 'showBeatFrames', label: '拍枠を表示' },
 		{ kind: 'boolean', key: 'showMeasureCounter', label: 'BPMと拍数カウンターを表示' },
 		{ kind: 'number', key: 'frameOpacity', label: '枠の不透明度', min: 0.02, max: 1, step: 0.01 },
-	],
-	'background-settings': [
-		{ kind: 'color', key: 'backgroundTopColor', label: '背景上部色' },
-		{ kind: 'color', key: 'backgroundBottomColor', label: '背景下部色' },
 	],
 }
 
