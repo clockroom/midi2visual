@@ -69,25 +69,12 @@ export function loadSettings(): AppSettings {
 			throw new Error('Saved settings are not an object.')
 		}
 
-		const savedSettings = { ...parsed }
-		delete savedSettings.backgroundParticleCount
-		delete savedSettings.longNoteFadeEndBeats
-
-		if (savedSettings.showLongNoteDissolvePreFlash === false) {
-			savedSettings.longNoteDissolvePreFlashSeconds = 0
-		}
-
-		delete savedSettings.showLongNoteDissolvePreFlash
-
-		if (
-			typeof savedSettings.distanceVisibility !== 'number' &&
-			typeof savedSettings.noteDistanceVisibility === 'number'
-		) {
-			savedSettings.distanceVisibility =
-				savedSettings.noteDistanceVisibility
-		}
-
-		delete savedSettings.noteDistanceVisibility
+		const currentKeys = Object.keys(defaultSettings) as (keyof AppSettings)[]
+		const savedSettings = Object.fromEntries(
+			currentKeys
+				.filter((key) => key in parsed)
+				.map((key) => [key, parsed[key]]),
+		) as Partial<AppSettings>
 
 		return {
 			...structuredClone(defaultSettings),

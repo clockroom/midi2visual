@@ -73,7 +73,7 @@ UnityやPython GUIではなくWebアプリとして実装する。
 
 詳細設定のPC表示は、左のノートを2行分にわたって配置し、その右にガイドとエフェクトを並べ、その下にカメラと再生を配置します。狭幅ではノート、ガイド、エフェクト、カメラ、再生の順で1列にします。詳細設定の開閉状態は保存しません。
 
-粒子化前発光のON/OFFは発光時間へ統合します。`longNoteDissolvePreFlashSeconds`が`0`なら無効、`0`より大きければ有効とし、旧`showLongNoteDissolvePreFlash`が`false`の保存値は`0`秒へ移行します。
+粒子化前発光のON/OFFは発光時間へ統合します。`longNoteDissolvePreFlashSeconds`が`0`なら無効、`0`より大きければ有効とします。
 
 ## `public`直下のファイル名を設定する
 
@@ -187,7 +187,7 @@ Note Onで即時上昇し、`80ms`保持後に`520ms`で減衰する。Note Off�
 
 ### 影響
 
-保存キーを`midi2visual.settings.v2`へ変更し、旧設定との互換性は持ちません。
+設定UIと描画処理は`noteSize`だけを参照します。
 
 ## 遠方のノートとレベルメータはFog補正で視認性を保つ
 
