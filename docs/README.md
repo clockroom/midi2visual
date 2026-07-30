@@ -27,7 +27,7 @@
 
 ## 仕様の正本
 
-- 利用者向けの起動手順はルートの[`README.md`](../README.md)を正本とします。
+- 第三者向けの概要、起動手順、基本操作はルートの[`README.md`](../README.md)を正本とします。
 - 機能と表示の期待動作は`docs`配下の仕様書を正本とします。
 - 設定の型と初期値は[`src/shared/types.ts`](../src/shared/types.ts)および[`src/shared/settings.ts`](../src/shared/settings.ts)を最終的な正本とします。
 - 実装とドキュメントが食い違う場合は、意図的な仕様変更か不具合かを確認してから両方を更新してください。
