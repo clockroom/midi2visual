@@ -77,7 +77,27 @@ button {
 .settings-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-areas:
+		"file longnote"
+		"levelmeter customeffect"
+		"advanced advanced";
 	gap: 1rem;
+}
+
+.settings-card-file {
+	grid-area: file;
+}
+
+.settings-card-long-note {
+	grid-area: longnote;
+}
+
+.settings-card-custom-effect {
+	grid-area: customeffect;
+}
+
+.settings-card-level-meter {
+	grid-area: levelmeter;
 }
 
 .settings-card {
@@ -98,7 +118,7 @@ button {
 }
 
 .advanced-settings {
-	grid-column: 1 / -1;
+	grid-area: advanced;
 	margin-top: 1rem;
 }
 
@@ -138,12 +158,32 @@ button {
 .advanced-settings-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-areas:
+		"note guide"
+		"note effect"
+		"camera playback";
 	gap: 1rem;
 	margin-top: 1rem;
 }
 
-.settings-card-wide {
-	grid-column: 1 / -1;
+.advanced-note {
+	grid-area: note;
+}
+
+.advanced-guide {
+	grid-area: guide;
+}
+
+.advanced-effect {
+	grid-area: effect;
+}
+
+.advanced-camera {
+	grid-area: camera;
+}
+
+.advanced-playback {
+	grid-area: playback;
 }
 
 .field-list {
@@ -255,14 +295,22 @@ button.secondary {
 
 	.settings-grid {
 		grid-template-columns: 1fr;
+		grid-template-areas:
+			"file"
+			"longnote"
+			"customeffect"
+			"levelmeter"
+			"advanced";
 	}
 
 	.advanced-settings-grid {
 		grid-template-columns: 1fr;
-	}
-
-	.settings-card-wide {
-		grid-column: auto;
+		grid-template-areas:
+			"note"
+			"guide"
+			"effect"
+			"camera"
+			"playback";
 	}
 
 	.field-row {

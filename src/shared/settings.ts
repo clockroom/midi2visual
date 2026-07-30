@@ -21,7 +21,6 @@ export const defaultSettings: AppSettings = {
 	longNoteFadeDurationBeats: 6,
 	showLongNoteDissolve: true,
 	longNoteDissolveTimingPercent: 50,
-	showLongNoteDissolvePreFlash: true,
 	longNoteDissolvePreFlashSeconds: 0.15,
 	longNoteDissolveRangePercent: 60,
 	longNoteDissolveMaxParticlesPerNote: 32,
@@ -73,6 +72,12 @@ export function loadSettings(): AppSettings {
 		const savedSettings = { ...parsed }
 		delete savedSettings.backgroundParticleCount
 		delete savedSettings.longNoteFadeEndBeats
+
+		if (savedSettings.showLongNoteDissolvePreFlash === false) {
+			savedSettings.longNoteDissolvePreFlashSeconds = 0
+		}
+
+		delete savedSettings.showLongNoteDissolvePreFlash
 
 		if (
 			typeof savedSettings.distanceVisibility !== 'number' &&

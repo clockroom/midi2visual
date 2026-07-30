@@ -13,22 +13,28 @@
 
 ## UIカテゴリー
 
-常時表示するカテゴリーは次の6つです。
+常時表示するカテゴリーは次の4つです。
 
 - ファイル
-- レベルメータ
-- ノート
-- ロングトーン
-- 組み込みエフェクト
+- ロングトーンエフェクト
 - カスタムエフェクト
+- レベルメータ
 
-低頻度の次の3カテゴリーは、初期状態が閉じた1つの「詳細設定」内へまとめます。
+次の5カテゴリーは、初期状態が閉じた1つの「詳細設定」内へまとめます。
 
-- 再生と時間
+- ノート
 - ガイド
-- 空間・カメラ・背景
+- エフェクト
+- カメラ
+- 再生
 
-詳細設定の開閉状態は保存しません。カテゴリー変更によって設定キー、初期値、保存値は変更しません。
+ノートカテゴリーには通常ノート設定に加えて、ロングトーンFadeのON/OFF、開始拍、Fade時間を配置します。
+
+HTMLと狭幅表示では、常用カテゴリーをファイル、ロングトーンエフェクト、カスタムエフェクト、レベルメータの順にします。PCではファイルとロングトーンエフェクト、レベルメータとカスタムエフェクトを横並びにします。
+
+PCの詳細設定では、ノートを左列の2行へSpanし、右列へガイドとエフェクトを縦に配置します。3行目はカメラと再生です。同じGrid行のカードは行の高さへ合わせて伸長します。
+
+詳細設定の開閉状態は保存しません。カテゴリー再編そのものは設定値へ影響しません。例外として、粒子化前発光の旧ON/OFF設定は発光秒数へ統合し、旧保存値を移行します。
 
 ## 設定項目
 
@@ -46,13 +52,12 @@
 | `distanceVisibility` | `0.8` | `0〜1`, step `0.05` | ノートとレベルメータのScene Fogの影響を弱める割合。`1`でFogなし |
 | `noteGlowIntensity` | `1.7` | `0〜4`, step `0.05` | 発音中と残光のEmissive倍率 |
 | `noteAfterglowSeconds` | `0.3` | `0.05〜2`, step `0.05` | Note Off後の残光時間 |
-| `longNoteFadeEnabled` | `true` | ON/OFF | 長いノートをNote Off前に自動Fadeする |
+| `longNoteFadeEnabled` | `true` | ON/OFF | 長いノートをNote Off前にFadeする |
 | `longNoteFadeStartBeats` | `2` | `1〜32`, step `0.5` | Note OnからFade開始までの拍数 |
 | `longNoteFadeDurationBeats` | `6` | `0.5〜64`, step `0.5` | Fade開始から完全消失までの拍数 |
 | `showLongNoteDissolve` | `true` | ON/OFF | 実Fade区間内でバーを粒子へ置換する |
 | `longNoteDissolveTimingPercent` | `50` | `10〜90`, step `5` | 実Fade区間内の粒子化タイミング |
-| `showLongNoteDissolvePreFlash` | `true` | ON/OFF | 粒子化直前にノート本体とGlowを強く発光させる |
-| `longNoteDissolvePreFlashSeconds` | `0.15` | `0.05〜0.5`, step `0.05` | 粒子化前に発光を強める時間 |
+| `longNoteDissolvePreFlashSeconds` | `0.15` | `0〜0.5`, step `0.05` | 粒子化前に発光を強める時間。`0`で無効 |
 | `longNoteDissolveRangePercent` | `60` | `10〜100`, step `5` | ノート長に対する粒子化範囲の上限割合 |
 | `longNoteDissolveMaxParticlesPerNote` | `32` | `8〜256`, step `8` | 1ノートの粒子化で生成する最大粒子数 |
 | `longNoteDissolveParticleSize` | `10` | `2〜32`, step `1` | 距離減衰しないScreen Space基準の粒子サイズ (px) |
@@ -112,7 +117,8 @@
 - ノート基本発光は各ノートMaterialのEmissive強度へ毎フレーム反映する。
 - 遠方視認性はノートとレベルメータのMaterialで共有するShader Uniformへ反映する。
 - Note Onエフェクト4種とロングトーン粒子は遠方視認性にかかわらずFogを無効化する。
-- 設定画面では「空間・カメラ・背景」へ配置する。
+- 設定画面では「カメラ」へ配置する。
+- 旧`showLongNoteDissolvePreFlash`が`false`の場合は発光秒数を`0`へ移行し、旧キーを破棄する。
 - 保存済みの`noteDistanceVisibility`は`distanceVisibility`へ移行してから旧キーを破棄する。
 - FOVとレイアウト変更後はカメラの基準距離を再計算する。
 - 現在のカメラ角度と初期距離に対するズーム比は可能な限り維持する。

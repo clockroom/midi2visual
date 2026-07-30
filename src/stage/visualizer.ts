@@ -475,11 +475,11 @@ export class MidiVisualizer {
 				)
 			const preFlashSeconds = THREE.MathUtils.clamp(
 				this.settings.longNoteDissolvePreFlashSeconds,
-				0.05,
+				0,
 				0.5,
 			)
 			const preFlashProgress =
-				this.settings.showLongNoteDissolvePreFlash &&
+				preFlashSeconds > 0 &&
 				dissolveReady &&
 				songSeconds < dissolveTriggerSeconds &&
 				songSeconds >= dissolveTriggerSeconds - preFlashSeconds

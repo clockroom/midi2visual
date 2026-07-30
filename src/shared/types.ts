@@ -16,7 +16,6 @@ export interface AppSettings {
 	longNoteFadeDurationBeats: number
 	showLongNoteDissolve: boolean
 	longNoteDissolveTimingPercent: number
-	showLongNoteDissolvePreFlash: boolean
 	longNoteDissolvePreFlashSeconds: number
 	longNoteDissolveRangePercent: number
 	longNoteDissolveMaxParticlesPerNote: number
