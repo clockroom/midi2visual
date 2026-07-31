@@ -75,19 +75,19 @@ UnityやPython GUIではなくWebアプリとして実装する。
 
 粒子化前発光のON/OFFは発光時間へ統合します。`longNoteDissolvePreFlashSeconds`が`0`なら無効、`0`より大きければ有効とします。
 
-## 演出の調整値と計算式を集約する
+## 演出の調整値と計算式をカテゴリー別に集約する
 
 ### 判断
 
-通常ノート表示、Note Onエフェクト4種、ロングトーン粒子の調整値、Velocity補正、時間変化の計算式を`stage/effect-tuning.ts`へ集約する。Three.js Object、Material、Textureの生成と破棄は各描画クラスへ残す。
+通常ノート表示、ロングトーン、Note Onエフェクト4種の調整値、Velocity補正、時間変化の計算式を`stage/effect-tuning`内の`note.ts`、`long-note.ts`、`note-on.ts`へ分割する。共通の値域制限は`math.ts`へ置く。バレルモジュールは作らず、各描画実装から対象カテゴリーを直接Importする。Three.js Object、Material、Textureの生成と破棄は各描画クラスへ残す。
 
 ### 理由
 
-Opacity、Scale、速度、Fade Curveなどが複数の描画クラスへ直接埋め込まれていると、映像を確認しながら演出を微調整するたびに描画処理を追う必要があります。調整値と純粋な計算式を一箇所へまとめることで、描画Resourceのライフサイクルへ触れずに演出を追い込めます。
+Opacity、Scale、速度、Fade Curveなどが描画クラスへ直接埋め込まれていると、映像を確認しながら演出を微調整するたびに描画処理を追う必要があります。一方、すべてを1ファイルへ集約すると調整対象を探す認知負荷が高くなります。演出の種類ごとに定数と計算式をまとめることで、描画Resourceのライフサイクルへ触れず、目的のカテゴリーだけを開いて調整できます。
 
 ### 影響
 
-曲ごとに変更する値は従来どおり`AppSettings`と設定画面で管理します。`effect-tuning.ts`は開発時の演出調整用とし、`localStorage`へ保存しません。移設時は既存の係数とRandom値の取得順を維持し、見た目を変更しません。
+曲ごとに変更する値は従来どおり`AppSettings`と設定画面で管理します。`effect-tuning`内の値は開発時の演出調整用とし、`localStorage`へ保存しません。Opacity、Blend率、Progressは最終結果を`0〜1`へ制限し、Duration、Size、Particle数、非有限値にも安全策を適用します。ScaleとSpeedには任意の上限を設けません。正常範囲の既存係数とRandom値の取得順は維持し、見た目を変更しません。
 
 ## `public`直下のファイル名を設定する
 

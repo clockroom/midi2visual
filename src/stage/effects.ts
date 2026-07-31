@@ -1,16 +1,19 @@
 import * as THREE from 'three'
 import { normalizePublicFileName, toPublicFileUrl } from '../shared/public-files'
 import type { AppSettings } from '../shared/types'
+import { clampOpacity } from './effect-tuning/math'
 import {
-	EFFECT_TUNING,
 	calculateCoreFlashAppearance,
 	calculateCustomEffectAppearance,
 	calculateImpactRingAppearance,
 	calculateNoteImpactFrame,
 	calculateSparkAppearance,
 	calculateSparkCount,
+	getCustomEffectPositionTolerance,
+	getNoteImpactActiveEffectLimit,
+	getNoteImpactMaxDeltaSeconds,
 	type NoteImpactKind,
-} from './effect-tuning'
+} from './effect-tuning/note-on'
 
 interface ActiveEffect {
 	kind: NoteImpactKind
@@ -106,7 +109,7 @@ export class NoteImpactEffects {
 		const safeDeltaSeconds = THREE.MathUtils.clamp(
 			deltaSeconds,
 			0,
-			EFFECT_TUNING.noteImpact.maxDeltaSeconds,
+			getNoteImpactMaxDeltaSeconds(),
 		)
 
 		for (let index = this.activeEffects.length - 1; index >= 0; index -= 1) {
@@ -397,7 +400,7 @@ export class NoteImpactEffects {
 			map: texture,
 			color,
 			transparent: true,
-			opacity,
+			opacity: clampOpacity(opacity),
 			blending: THREE.AdditiveBlending,
 			depthWrite: false,
 			depthTest: true,
@@ -416,7 +419,7 @@ export class NoteImpactEffects {
 			map: texture,
 			color,
 			transparent: true,
-			opacity,
+			opacity: clampOpacity(opacity),
 			blending,
 			depthWrite: false,
 			depthTest: true,
@@ -430,10 +433,7 @@ export class NoteImpactEffects {
 		effect.object.scale.setScalar(effect.startScale)
 		this.activeEffects.push(effect)
 
-		while (
-			this.activeEffects.length >
-				EFFECT_TUNING.noteImpact.maxActiveEffects
-		) {
+		while (this.activeEffects.length > getNoteImpactActiveEffectLimit()) {
 			this.removeAt(0)
 		}
 	}
@@ -447,7 +447,7 @@ export class NoteImpactEffects {
 	}
 
 	private clearCustomAt(x: number, y: number): void {
-		const positionTolerance = EFFECT_TUNING.custom.positionTolerance
+		const positionTolerance = getCustomEffectPositionTolerance()
 
 		for (let index = this.activeEffects.length - 1; index >= 0; index -= 1) {
 			const effect = this.activeEffects[index]

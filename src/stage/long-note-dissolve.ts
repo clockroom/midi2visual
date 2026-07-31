@@ -1,11 +1,16 @@
 import * as THREE from 'three'
 import type { AppSettings } from '../shared/types'
+import { clampOpacity } from './effect-tuning/math'
 import {
-	EFFECT_TUNING,
 	calculateLongNoteParticleFrame,
 	clampLongNoteParticleSize,
 	createLongNoteParticleVelocity,
-} from './effect-tuning'
+	getLongNoteActiveParticleLimit,
+	getLongNoteAlphaTest,
+	getLongNoteInitialOpacity,
+	getLongNoteMinimumDurationSeconds,
+	getLongNoteRenderOrder,
+} from './effect-tuning/long-note'
 
 interface DissolveBurst {
 	points: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
@@ -55,8 +60,7 @@ export class LongNoteDissolveEffects {
 		return (
 			this.settings.showLongNoteDissolve &&
 			this.sparkTexture !== null &&
-			durationSeconds >=
-				EFFECT_TUNING.longNoteDissolve.minimumDurationSeconds
+			durationSeconds >= getLongNoteMinimumDurationSeconds()
 		)
 	}
 
@@ -72,14 +76,14 @@ export class LongNoteDissolveEffects {
 		while (
 			this.bursts.length > 0 &&
 			this.activeParticleCount + request.positions.length >
-				EFFECT_TUNING.longNoteDissolve.maxActiveParticles
+				getLongNoteActiveParticleLimit()
 		) {
 			this.removeAt(0)
 		}
 
 		const particleCount = Math.min(
 			request.positions.length,
-			EFFECT_TUNING.longNoteDissolve.maxActiveParticles,
+			getLongNoteActiveParticleLimit(),
 		)
 		const origins = new Float32Array(particleCount * 3)
 		const velocities = new Float32Array(particleCount * 3)
@@ -114,8 +118,8 @@ export class LongNoteDissolveEffects {
 			size: startSize,
 			sizeAttenuation: false,
 			transparent: true,
-			opacity: EFFECT_TUNING.longNoteDissolve.initialOpacity,
-			alphaTest: EFFECT_TUNING.longNoteDissolve.alphaTest,
+			opacity: clampOpacity(getLongNoteInitialOpacity()),
+			alphaTest: getLongNoteAlphaTest(),
 			blending: THREE.AdditiveBlending,
 			depthWrite: false,
 			depthTest: true,
@@ -123,7 +127,7 @@ export class LongNoteDissolveEffects {
 		})
 		const points = new THREE.Points(geometry, material)
 		points.frustumCulled = false
-		points.renderOrder = EFFECT_TUNING.longNoteDissolve.renderOrder
+		points.renderOrder = getLongNoteRenderOrder()
 		this.group.add(points)
 		this.bursts.push({
 			points,

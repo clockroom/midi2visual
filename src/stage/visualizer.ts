@@ -5,14 +5,18 @@ import {
 	type DistanceVisibilityUniform,
 } from './distance-visibility'
 import {
+	calculateLongFadeNoteAppearance,
 	calculateLongNoteParticleCount,
 	calculateLongNoteParticlePlacement,
 	calculateLongNotePreFlashProgress,
-	calculateNoteAppearance,
 	clampLongNoteDissolveRangeRatio,
 	clampLongNoteDissolveTriggerRatio,
+} from './effect-tuning/long-note'
+import {
+	calculateNoteAppearance,
+	type NoteAppearance,
 	type NoteAppearanceMode,
-} from './effect-tuning'
+} from './effect-tuning/note'
 import { NoteImpactEffects } from './effects'
 import { TrackLevelMeters } from './level-meters'
 import { LongNoteDissolveEffects } from './long-note-dissolve'
@@ -525,8 +529,7 @@ export class MidiVisualizer {
 				continue
 			}
 
-			let appearanceMode: NoteAppearanceMode = 'idle'
-			let appearanceRemaining = 1
+			let appearance: NoteAppearance
 
 			if (active && longFadeStarted) {
 				const fadeDurationBeats = Math.max(
@@ -538,26 +541,39 @@ export class MidiVisualizer {
 					0,
 					1,
 				)
-				appearanceMode = 'longFade'
-				appearanceRemaining = 1 - fadeProgress
-			} else if (active) {
-				appearanceMode = 'active'
-			} else if (afterglow) {
-				appearanceMode = 'afterglow'
-				appearanceRemaining =
-					1 - timeSinceEnd / this.settings.noteAfterglowSeconds
-			}
+				appearance = calculateLongFadeNoteAppearance({
+					velocity: note.velocity,
+					remaining: 1 - fadeProgress,
+					preFlashProgress,
+					baseEmissiveIntensity:
+						this.settings.noteBaseEmissiveIntensity,
+					glowIntensity: this.settings.noteGlowIntensity,
+					noteOpacity: this.settings.noteOpacity,
+				})
+			} else {
+				let appearanceMode: NoteAppearanceMode = 'idle'
+				let appearanceRemaining = 1
 
-			const appearance = calculateNoteAppearance({
-				mode: appearanceMode,
-				velocity: note.velocity,
-				remaining: appearanceRemaining,
-				preFlashProgress,
-				baseEmissiveIntensity:
-					this.settings.noteBaseEmissiveIntensity,
-				glowIntensity: this.settings.noteGlowIntensity,
-				noteOpacity: this.settings.noteOpacity,
-			})
+				if (active) {
+					appearanceMode = 'active'
+				} else if (afterglow) {
+					appearanceMode = 'afterglow'
+					appearanceRemaining =
+						1 -
+						timeSinceEnd /
+							this.settings.noteAfterglowSeconds
+				}
+
+				appearance = calculateNoteAppearance({
+					mode: appearanceMode,
+					velocity: note.velocity,
+					remaining: appearanceRemaining,
+					baseEmissiveIntensity:
+						this.settings.noteBaseEmissiveIntensity,
+					glowIntensity: this.settings.noteGlowIntensity,
+					noteOpacity: this.settings.noteOpacity,
+				})
+			}
 			mesh.material.emissiveIntensity = appearance.emissiveIntensity
 			mesh.material.opacity = appearance.noteOpacity
 			glow.material.opacity = appearance.glowOpacity

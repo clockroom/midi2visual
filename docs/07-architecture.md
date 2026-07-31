@@ -45,7 +45,11 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	└─ types.ts
 │	├─ stage/
 │	│	├─ distance-visibility.ts
-│	│	├─ effect-tuning.ts
+│	│	├─ effect-tuning/
+│	│	│	├─ long-note.ts
+│	│	│	├─ math.ts
+│	│	│	├─ note-on.ts
+│	│	│	└─ note.ts
 │	│	├─ effects.ts
 │	│	├─ level-meters.ts
 │	│	├─ long-note-dissolve.ts
@@ -129,29 +133,45 @@ Three.jsへ依存しません。
 - Fog適用前後の色を`distanceVisibility`で補間
 - Material種別ごとのShader Program Cache Key
 
-### `stage/effect-tuning.ts`
+### `stage/effect-tuning/note.ts`
+
+- 通常ノート、発音中、Note Off残光の表示計算
+- Emissive、ノートOpacity、Glow Opacity
+
+### `stage/effect-tuning/long-note.ts`
+
+- ロングトーン粒子の個数、速度、配置、拡散、減衰
+- ロングトーンFade中のノート表示
+- 粒子化範囲、配置密度、粒子化前発光
+- Active粒子数と1ノート粒子数の安全上限
+
+### `stage/effect-tuning/note-on.ts`
 
 - Note Onエフェクト4種のDuration、Opacity、Scale、Velocity係数
-- 通常ノート、発音中、残光、ロングトーンFadeの表示計算
-- スパークとロングトーン粒子の個数、速度、拡散、減衰
+- スパークの個数、速度、移動Curve
 - カスタム画像の最低ScaleとFade Curve
-- ロングトーン粒子化範囲、配置密度、事前発光
-- 描画ライブラリに依存しない純粋な計算関数
 
-曲ごとに変更する値ではなく、演出自体を開発時に調整する値を集約します。設定画面と`localStorage`の対象にはしません。
+### `stage/effect-tuning/math.ts`
+
+- Opacity、Blend率、Progressの`0〜1`制限
+- DurationとSizeの下限保証
+- `NaN`と`Infinity`のFallback
+- LerpとEasing
+
+各カテゴリーは直接Importし、バレルモジュールを使用しません。曲ごとに変更する値ではなく、演出自体を開発時に調整する値を各ファイルの先頭へまとめます。設定画面と`localStorage`の対象にはしません。
 
 ### `stage/effects.ts`
 
 - 組み込みTextureとカスタムTextureの非同期読み込み
 - Note On時のコアフラッシュ、リング、スパーク、カスタム画像生成
-- `effect-tuning.ts`の計算結果をThree.js Objectへ適用
+- `effect-tuning/note-on.ts`の計算結果をThree.js Objectへ適用
 - Active EffectとTextureのDispose
 
 ### `stage/long-note-dissolve.ts`
 
 - `spark.png`の非同期読み込み
 - ロングトーン粒子Burstの生成
-- `effect-tuning.ts`の計算結果を`THREE.Points`へ適用
+- `effect-tuning/long-note.ts`の計算結果を`THREE.Points`へ適用
 - Active粒子数の上限制御
 - Three.js ResourceのDispose
 
