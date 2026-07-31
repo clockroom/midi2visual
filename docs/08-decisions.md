@@ -75,6 +75,20 @@ UnityやPython GUIではなくWebアプリとして実装する。
 
 粒子化前発光のON/OFFは発光時間へ統合します。`longNoteDissolvePreFlashSeconds`が`0`なら無効、`0`より大きければ有効とします。
 
+## 演出の調整値と計算式を集約する
+
+### 判断
+
+通常ノート表示、Note Onエフェクト4種、ロングトーン粒子の調整値、Velocity補正、時間変化の計算式を`stage/effect-tuning.ts`へ集約する。Three.js Object、Material、Textureの生成と破棄は各描画クラスへ残す。
+
+### 理由
+
+Opacity、Scale、速度、Fade Curveなどが複数の描画クラスへ直接埋め込まれていると、映像を確認しながら演出を微調整するたびに描画処理を追う必要があります。調整値と純粋な計算式を一箇所へまとめることで、描画Resourceのライフサイクルへ触れずに演出を追い込めます。
+
+### 影響
+
+曲ごとに変更する値は従来どおり`AppSettings`と設定画面で管理します。`effect-tuning.ts`は開発時の演出調整用とし、`localStorage`へ保存しません。移設時は既存の係数とRandom値の取得順を維持し、見た目を変更しません。
+
 ## `public`直下のファイル名を設定する
 
 ### 判断

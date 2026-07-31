@@ -4,6 +4,15 @@ import {
 	applyDistanceVisibility,
 	type DistanceVisibilityUniform,
 } from './distance-visibility'
+import {
+	calculateLongNoteParticleCount,
+	calculateLongNoteParticlePlacement,
+	calculateLongNotePreFlashProgress,
+	calculateNoteAppearance,
+	clampLongNoteDissolveRangeRatio,
+	clampLongNoteDissolveTriggerRatio,
+	type NoteAppearanceMode,
+} from './effect-tuning'
 import { NoteImpactEffects } from './effects'
 import { TrackLevelMeters } from './level-meters'
 import { LongNoteDissolveEffects } from './long-note-dissolve'
@@ -26,7 +35,7 @@ const ORBIT_SPEED = THREE.MathUtils.degToRad(35)
 const ZOOM_SPEED_RATIO = 0.8
 const MIN_DISTANCE_RATIO = 0.2
 const MAX_DISTANCE_RATIO = 4
-const LONG_DISSOLVE_PARTICLES_PER_BEAT = 6
+
 export class MidiVisualizer {
 	private readonly scene = new THREE.Scene()
 	private readonly camera = new THREE.PerspectiveCamera()
@@ -445,10 +454,8 @@ export class MidiVisualizer {
 			)
 			const longFadeStarted =
 				longFadeApplies && elapsedBeats >= fadeStartBeats
-			const dissolveTriggerRatio = THREE.MathUtils.clamp(
+			const dissolveTriggerRatio = clampLongNoteDissolveTriggerRatio(
 				this.settings.longNoteDissolveTimingPercent / 100,
-				0.1,
-				0.9,
 			)
 			const dissolveTriggerBeats =
 				fadeStartBeats +
@@ -473,24 +480,12 @@ export class MidiVisualizer {
 				this.longDissolveEffects.canTrigger(
 					plannedDissolveDurationSeconds,
 				)
-			const preFlashSeconds = THREE.MathUtils.clamp(
+			const preFlashProgress = calculateLongNotePreFlashProgress(
+				songSeconds,
+				dissolveTriggerSeconds,
 				this.settings.longNoteDissolvePreFlashSeconds,
-				0,
-				0.5,
+				dissolveReady,
 			)
-			const preFlashProgress =
-				preFlashSeconds > 0 &&
-				dissolveReady &&
-				songSeconds < dissolveTriggerSeconds &&
-				songSeconds >= dissolveTriggerSeconds - preFlashSeconds
-					? THREE.MathUtils.clamp(
-							1 -
-								(dissolveTriggerSeconds - songSeconds) /
-									preFlashSeconds,
-							0,
-							1,
-						)
-					: 0
 
 			if (
 				dissolveReady &&
@@ -530,8 +525,10 @@ export class MidiVisualizer {
 				continue
 			}
 
+			let appearanceMode: NoteAppearanceMode = 'idle'
+			let appearanceRemaining = 1
+
 			if (active && longFadeStarted) {
-				const velocity = THREE.MathUtils.clamp(note.velocity, 0, 1)
 				const fadeDurationBeats = Math.max(
 					0.000001,
 					effectiveFadeEndBeats - fadeStartBeats,
@@ -541,57 +538,30 @@ export class MidiVisualizer {
 					0,
 					1,
 				)
-				const remaining = 1 - fadeProgress
-				mesh.material.emissiveIntensity = Math.max(
-					this.settings.noteBaseEmissiveIntensity,
-					this.settings.noteGlowIntensity * (0.45 + velocity),
-				)
-				mesh.material.opacity =
-					Math.min(1, this.settings.noteOpacity + 0.16) * remaining
-				glow.material.opacity = (0.1 + velocity * 0.25) * remaining
-				glow.visible = remaining > 0
-
-				if (preFlashProgress > 0) {
-					const flashStrength = Math.pow(preFlashProgress, 2)
-					mesh.material.emissiveIntensity +=
-						this.settings.noteGlowIntensity * 3 * flashStrength
-					mesh.material.opacity = THREE.MathUtils.lerp(
-						mesh.material.opacity,
-						1,
-						flashStrength * 0.7,
-					)
-					glow.material.opacity = THREE.MathUtils.lerp(
-						glow.material.opacity,
-						1,
-						flashStrength,
-					)
-					glow.visible = true
-				}
+				appearanceMode = 'longFade'
+				appearanceRemaining = 1 - fadeProgress
 			} else if (active) {
-				const velocity = THREE.MathUtils.clamp(note.velocity, 0, 1)
-				mesh.material.emissiveIntensity = Math.max(
-					this.settings.noteBaseEmissiveIntensity,
-					this.settings.noteGlowIntensity * (0.45 + velocity),
-				)
-				mesh.material.opacity = Math.min(1, this.settings.noteOpacity + 0.16)
-				glow.material.opacity = 0.1 + velocity * 0.25
-				glow.visible = true
+				appearanceMode = 'active'
 			} else if (afterglow) {
-				const fade = 1 - timeSinceEnd / this.settings.noteAfterglowSeconds
-				mesh.material.emissiveIntensity = Math.max(
-					this.settings.noteBaseEmissiveIntensity,
-					this.settings.noteGlowIntensity * fade * 0.7,
-				)
-				mesh.material.opacity = this.settings.noteOpacity * fade
-				glow.material.opacity = 0.2 * fade
-				glow.visible = true
-			} else {
-				mesh.material.emissiveIntensity =
-					this.settings.noteBaseEmissiveIntensity
-				mesh.material.opacity = this.settings.noteOpacity
-				glow.material.opacity = 0
-				glow.visible = false
+				appearanceMode = 'afterglow'
+				appearanceRemaining =
+					1 - timeSinceEnd / this.settings.noteAfterglowSeconds
 			}
+
+			const appearance = calculateNoteAppearance({
+				mode: appearanceMode,
+				velocity: note.velocity,
+				remaining: appearanceRemaining,
+				preFlashProgress,
+				baseEmissiveIntensity:
+					this.settings.noteBaseEmissiveIntensity,
+				glowIntensity: this.settings.noteGlowIntensity,
+				noteOpacity: this.settings.noteOpacity,
+			})
+			mesh.material.emissiveIntensity = appearance.emissiveIntensity
+			mesh.material.opacity = appearance.noteOpacity
+			glow.material.opacity = appearance.glowOpacity
+			glow.visible = appearance.glowVisible
 		}
 	}
 
@@ -654,10 +624,8 @@ export class MidiVisualizer {
 			return []
 		}
 
-		const rangeRatio = THREE.MathUtils.clamp(
+		const rangeRatio = clampLongNoteDissolveRangeRatio(
 			this.settings.longNoteDissolveRangePercent / 100,
-			0.1,
-			1,
 		)
 		const visibleFarTicks = this.secondsToTicks(
 			songSeconds + this.settings.lookAheadSeconds,
@@ -671,38 +639,30 @@ export class MidiVisualizer {
 		)
 		const rangeBeats =
 			(rangeEndTicks - rangeStartTicks) / this.model.beatTicks
-		const maxParticlesPerNote = THREE.MathUtils.clamp(
-			Math.round(this.settings.longNoteDissolveMaxParticlesPerNote),
-			1,
-			512,
-		)
-		const particleCount = Math.min(
-			maxParticlesPerNote,
-			Math.max(
-				1,
-				Math.ceil(
-					rangeBeats * LONG_DISSOLVE_PARTICLES_PER_BEAT,
-				),
-			),
+		const particleCount = calculateLongNoteParticleCount(
+			rangeBeats,
+			this.settings.longNoteDissolveMaxParticlesPerNote,
 		)
 		const positions: THREE.Vector3[] = []
-		const crossSectionJitter = this.settings.noteSize * 0.38
 
 		for (let index = 0; index < particleCount; index += 1) {
-			const intervalProgress =
-				(index + Math.random()) / particleCount
+			const placement = calculateLongNoteParticlePlacement(
+				index,
+				particleCount,
+				this.settings.noteSize,
+			)
 			const particleTicks = THREE.MathUtils.lerp(
 				rangeStartTicks,
 				rangeEndTicks,
-				intervalProgress,
+				placement.intervalProgress,
 			)
 			const particleSeconds = this.ticksToSeconds(particleTicks)
 			positions.push(
 				new THREE.Vector3(
 					note.trackIndex * this.settings.trackSpacing +
-						(Math.random() - 0.5) * crossSectionJitter,
+						placement.xOffset,
 					this.pitchToY(note.pitch) +
-						(Math.random() - 0.5) * crossSectionJitter,
+						placement.yOffset,
 					(songSeconds - particleSeconds) *
 						this.settings.timeUnitsPerSecond,
 				),

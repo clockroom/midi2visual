@@ -1,5 +1,11 @@
 import * as THREE from 'three'
 import type { AppSettings } from '../shared/types'
+import {
+	EFFECT_TUNING,
+	calculateLongNoteParticleFrame,
+	clampLongNoteParticleSize,
+	createLongNoteParticleVelocity,
+} from './effect-tuning'
 
 interface DissolveBurst {
 	points: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
@@ -19,8 +25,6 @@ export interface LongNoteDissolveRequest {
 }
 
 const SPARK_TEXTURE_PATH = '/assets/spark.png'
-const MAX_ACTIVE_PARTICLES = 512
-const MIN_BURST_DURATION_SECONDS = 0.15
 
 export class LongNoteDissolveEffects {
 	private readonly textureLoader = new THREE.TextureLoader()
@@ -51,7 +55,8 @@ export class LongNoteDissolveEffects {
 		return (
 			this.settings.showLongNoteDissolve &&
 			this.sparkTexture !== null &&
-			durationSeconds >= MIN_BURST_DURATION_SECONDS
+			durationSeconds >=
+				EFFECT_TUNING.longNoteDissolve.minimumDurationSeconds
 		)
 	}
 
@@ -67,14 +72,14 @@ export class LongNoteDissolveEffects {
 		while (
 			this.bursts.length > 0 &&
 			this.activeParticleCount + request.positions.length >
-				MAX_ACTIVE_PARTICLES
+				EFFECT_TUNING.longNoteDissolve.maxActiveParticles
 		) {
 			this.removeAt(0)
 		}
 
 		const particleCount = Math.min(
 			request.positions.length,
-			MAX_ACTIVE_PARTICLES,
+			EFFECT_TUNING.longNoteDissolve.maxActiveParticles,
 		)
 		const origins = new Float32Array(particleCount * 3)
 		const velocities = new Float32Array(particleCount * 3)
@@ -83,18 +88,16 @@ export class LongNoteDissolveEffects {
 		for (let index = 0; index < particleCount; index += 1) {
 			const source = request.positions[index]
 			const offset = index * 3
-			const angle = Math.random() * Math.PI * 2
-			const radialSpeed = 0.7 + Math.random() * 1.3
+			const velocity = createLongNoteParticleVelocity()
 			origins[offset] = source.x
 			origins[offset + 1] = source.y
 			origins[offset + 2] = source.z
 			positions[offset] = source.x
 			positions[offset + 1] = source.y
 			positions[offset + 2] = source.z
-			velocities[offset] = Math.cos(angle) * radialSpeed
-			velocities[offset + 1] =
-				Math.sin(angle) * radialSpeed + 0.15 + Math.random() * 0.3
-			velocities[offset + 2] = (Math.random() - 0.5) * 1.4
+			velocities[offset] = velocity.x
+			velocities[offset + 1] = velocity.y
+			velocities[offset + 2] = velocity.z
 		}
 
 		const geometry = new THREE.BufferGeometry()
@@ -102,10 +105,8 @@ export class LongNoteDissolveEffects {
 			'position',
 			new THREE.BufferAttribute(positions, 3),
 		)
-		const startSize = THREE.MathUtils.clamp(
+		const startSize = clampLongNoteParticleSize(
 			this.settings.longNoteDissolveParticleSize,
-			2,
-			32,
 		)
 		const material = new THREE.PointsMaterial({
 			color: request.color,
@@ -113,8 +114,8 @@ export class LongNoteDissolveEffects {
 			size: startSize,
 			sizeAttenuation: false,
 			transparent: true,
-			opacity: 0.9,
-			alphaTest: 0.02,
+			opacity: EFFECT_TUNING.longNoteDissolve.initialOpacity,
+			alphaTest: EFFECT_TUNING.longNoteDissolve.alphaTest,
 			blending: THREE.AdditiveBlending,
 			depthWrite: false,
 			depthTest: true,
@@ -122,7 +123,7 @@ export class LongNoteDissolveEffects {
 		})
 		const points = new THREE.Points(geometry, material)
 		points.frustumCulled = false
-		points.renderOrder = 5
+		points.renderOrder = EFFECT_TUNING.longNoteDissolve.renderOrder
 		this.group.add(points)
 		this.bursts.push({
 			points,
@@ -144,13 +145,14 @@ export class LongNoteDissolveEffects {
 		for (let index = this.bursts.length - 1; index >= 0; index -= 1) {
 			const burst = this.bursts[index]
 			burst.age += safeDeltaSeconds
-			const progress = THREE.MathUtils.clamp(
-				burst.age / burst.duration,
-				0,
-				1,
+			const frame = calculateLongNoteParticleFrame(
+				burst.age,
+				burst.duration,
+				burst.baseOpacity,
+				burst.startSize,
 			)
 
-			if (progress >= 1) {
+			if (frame.complete) {
 				this.removeAt(index)
 				continue
 			}
@@ -159,8 +161,6 @@ export class LongNoteDissolveEffects {
 				'position',
 			) as THREE.BufferAttribute
 			const positions = positionAttribute.array as Float32Array
-			const travel = burst.age * (1 - progress * 0.35)
-
 			for (
 				let particleIndex = 0;
 				particleIndex < burst.particleCount;
@@ -168,23 +168,18 @@ export class LongNoteDissolveEffects {
 			) {
 				const offset = particleIndex * 3
 				positions[offset] =
-					burst.origins[offset] + burst.velocities[offset] * travel
+					burst.origins[offset] + burst.velocities[offset] * frame.travel
 				positions[offset + 1] =
 					burst.origins[offset + 1] +
-					burst.velocities[offset + 1] * travel
+					burst.velocities[offset + 1] * frame.travel
 				positions[offset + 2] =
 					burst.origins[offset + 2] +
-					burst.velocities[offset + 2] * travel
+					burst.velocities[offset + 2] * frame.travel
 			}
 
 			positionAttribute.needsUpdate = true
-			burst.points.material.opacity =
-				burst.baseOpacity * Math.pow(1 - progress, 1.35)
-			burst.points.material.size = THREE.MathUtils.lerp(
-				burst.startSize,
-				burst.startSize * 0.3,
-				progress,
-			)
+			burst.points.material.opacity = frame.opacity
+			burst.points.material.size = frame.size
 		}
 	}
 

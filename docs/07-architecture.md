@@ -45,8 +45,10 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	└─ types.ts
 │	├─ stage/
 │	│	├─ distance-visibility.ts
+│	│	├─ effect-tuning.ts
 │	│	├─ effects.ts
 │	│	├─ level-meters.ts
+│	│	├─ long-note-dissolve.ts
 │	│	├─ main.ts
 │	│	├─ palette.ts
 │	│	├─ timeline.ts
@@ -127,18 +129,29 @@ Three.jsへ依存しません。
 - Fog適用前後の色を`distanceVisibility`で補間
 - Material種別ごとのShader Program Cache Key
 
+### `stage/effect-tuning.ts`
+
+- Note Onエフェクト4種のDuration、Opacity、Scale、Velocity係数
+- 通常ノート、発音中、残光、ロングトーンFadeの表示計算
+- スパークとロングトーン粒子の個数、速度、拡散、減衰
+- カスタム画像の最低ScaleとFade Curve
+- ロングトーン粒子化範囲、配置密度、事前発光
+- 描画ライブラリに依存しない純粋な計算関数
+
+曲ごとに変更する値ではなく、演出自体を開発時に調整する値を集約します。設定画面と`localStorage`の対象にはしません。
+
 ### `stage/effects.ts`
 
 - 組み込みTextureとカスタムTextureの非同期読み込み
 - Note On時のコアフラッシュ、リング、スパーク、カスタム画像生成
-- 曲時刻に追従した移動、Scale、Opacity更新
+- `effect-tuning.ts`の計算結果をThree.js Objectへ適用
 - Active EffectとTextureのDispose
 
 ### `stage/long-note-dissolve.ts`
 
 - `spark.png`の非同期読み込み
 - ロングトーン粒子Burstの生成
-- `THREE.Points`内の粒子位置、Opacity、Size更新
+- `effect-tuning.ts`の計算結果を`THREE.Points`へ適用
 - Active粒子数の上限制御
 - Three.js ResourceのDispose
 

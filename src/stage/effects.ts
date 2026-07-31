@@ -1,11 +1,19 @@
 import * as THREE from 'three'
 import { normalizePublicFileName, toPublicFileUrl } from '../shared/public-files'
 import type { AppSettings } from '../shared/types'
-
-type EffectKind = 'flash' | 'ring' | 'spark' | 'custom'
+import {
+	EFFECT_TUNING,
+	calculateCoreFlashAppearance,
+	calculateCustomEffectAppearance,
+	calculateImpactRingAppearance,
+	calculateNoteImpactFrame,
+	calculateSparkAppearance,
+	calculateSparkCount,
+	type NoteImpactKind,
+} from './effect-tuning'
 
 interface ActiveEffect {
-	kind: EffectKind
+	kind: NoteImpactKind
 	object: THREE.Sprite | THREE.Mesh<THREE.PlaneGeometry, THREE.MeshBasicMaterial>
 	material: THREE.SpriteMaterial | THREE.MeshBasicMaterial
 	age: number
@@ -25,14 +33,7 @@ const BUILT_IN_TEXTURE_PATHS = {
 	spark: '/assets/spark.png',
 } as const
 
-const MAX_ACTIVE_EFFECTS = 768
-const FLASH_DURATION = 0.18
-const RING_DURATION = 0.55
 const CUSTOM_DEFAULT_FILE_NAME = 'custom.png'
-
-function easeOutCubic(value: number): number {
-	return 1 - Math.pow(1 - value, 3)
-}
 
 export class NoteImpactEffects {
 	private readonly textureLoader = new THREE.TextureLoader()
@@ -84,59 +85,55 @@ export class NoteImpactEffects {
 	}
 
 	trigger(x: number, y: number, color: number, velocity: number): void {
-		const normalizedVelocity = THREE.MathUtils.clamp(velocity, 0, 1)
-
 		if (this.settings.showCoreFlash && this.flashTexture) {
-			this.createFlash(x, y, color, normalizedVelocity)
+			this.createFlash(x, y, color, velocity)
 		}
 
 		if (this.settings.showImpactRing && this.ringTexture) {
-			this.createRing(x, y, color, normalizedVelocity)
+			this.createRing(x, y, color, velocity)
 		}
 
 		if (this.settings.showSparks && this.sparkTexture) {
-			this.createSparks(x, y, color, normalizedVelocity)
+			this.createSparks(x, y, color, velocity)
 		}
 
 		if (this.settings.showCustomImpactImage && this.customTexture) {
-			this.createCustomImage(x, y, color, normalizedVelocity)
+			this.createCustomImage(x, y, color, velocity)
 		}
 	}
 
 	update(deltaSeconds: number): void {
-		const safeDeltaSeconds = THREE.MathUtils.clamp(deltaSeconds, 0, 0.1)
+		const safeDeltaSeconds = THREE.MathUtils.clamp(
+			deltaSeconds,
+			0,
+			EFFECT_TUNING.noteImpact.maxDeltaSeconds,
+		)
 
 		for (let index = this.activeEffects.length - 1; index >= 0; index -= 1) {
 			const effect = this.activeEffects[index]
 			effect.age += safeDeltaSeconds
-			const progress = THREE.MathUtils.clamp(effect.age / effect.duration, 0, 1)
+			const frame = calculateNoteImpactFrame(
+				effect.kind,
+				effect.age,
+				effect.duration,
+				effect.startScale,
+				effect.endScale,
+				effect.baseOpacity,
+			)
 
-			if (progress >= 1) {
+			if (frame.complete) {
 				this.removeAt(index)
 				continue
 			}
 
-			const easedProgress = easeOutCubic(progress)
-			const scale = THREE.MathUtils.lerp(
-				effect.startScale,
-				effect.endScale,
-				easedProgress,
-			)
-			effect.object.scale.setScalar(scale)
-
-			if (effect.kind === 'custom') {
-				const fadeProgress =
-					progress <= 0.15 ? 0 : (progress - 0.15) / 0.85
-				effect.material.opacity =
-					effect.baseOpacity * (1 - THREE.MathUtils.clamp(fadeProgress, 0, 1))
-			} else {
-				effect.material.opacity = effect.baseOpacity * (1 - progress)
-			}
+			effect.object.scale.setScalar(frame.scale)
+			effect.material.opacity = frame.opacity
 
 			if (effect.kind === 'spark') {
-				const travel = effect.age * (1 - progress * 0.35)
-				effect.object.position.x = effect.startX + effect.velocityX * travel
-				effect.object.position.y = effect.startY + effect.velocityY * travel
+				effect.object.position.x =
+					effect.startX + effect.velocityX * frame.travel
+				effect.object.position.y =
+					effect.startY + effect.velocityY * frame.travel
 			}
 		}
 	}
@@ -246,18 +243,23 @@ export class NoteImpactEffects {
 			return
 		}
 
-		const material = this.createSpriteMaterial(this.flashTexture, color, 0.45 + velocity * 0.5)
+		const appearance = calculateCoreFlashAppearance(velocity)
+		const material = this.createSpriteMaterial(
+			this.flashTexture,
+			color,
+			appearance.opacity,
+		)
 		const sprite = new THREE.Sprite(material)
-		sprite.position.set(x, y, 0.12)
+		sprite.position.set(x, y, appearance.depth)
 		this.group.add(sprite)
 		this.addEffect({
 			kind: 'flash',
 			object: sprite,
 			material,
 			age: 0,
-			duration: FLASH_DURATION,
-			startScale: 0.28 + velocity * 0.18,
-			endScale: 1 + velocity * 0.7,
+			duration: appearance.duration,
+			startScale: appearance.startScale,
+			endScale: appearance.endScale,
 			baseOpacity: material.opacity,
 			startX: x,
 			startY: y,
@@ -276,18 +278,23 @@ export class NoteImpactEffects {
 			return
 		}
 
-		const material = this.createPlaneMaterial(this.ringTexture, color, 0.35 + velocity * 0.5)
+		const appearance = calculateImpactRingAppearance(velocity)
+		const material = this.createPlaneMaterial(
+			this.ringTexture,
+			color,
+			appearance.opacity,
+		)
 		const mesh = new THREE.Mesh(this.planeGeometry, material)
-		mesh.position.set(x, y, 0.07)
+		mesh.position.set(x, y, appearance.depth)
 		this.group.add(mesh)
 		this.addEffect({
 			kind: 'ring',
 			object: mesh,
 			material,
 			age: 0,
-			duration: RING_DURATION,
-			startScale: 0.35 + velocity * 0.2,
-			endScale: 1.5 + velocity * 1.3,
+			duration: appearance.duration,
+			startScale: appearance.startScale,
+			endScale: appearance.endScale,
 			baseOpacity: material.opacity,
 			startX: x,
 			startY: y,
@@ -306,32 +313,31 @@ export class NoteImpactEffects {
 			return
 		}
 
-		const count = Math.round(3 + velocity * 5)
+		const count = calculateSparkCount(velocity)
 
 		for (let index = 0; index < count; index += 1) {
-			const angle = Math.random() * Math.PI * 2
-			const speed = 1.4 + Math.random() * 1.2 + velocity * 1.8
+			const appearance = calculateSparkAppearance(velocity)
 			const material = this.createSpriteMaterial(
 				this.sparkTexture,
 				color,
-				0.5 + velocity * 0.5,
+				appearance.opacity,
 			)
 			const sprite = new THREE.Sprite(material)
-			sprite.position.set(x, y, 0.14)
+			sprite.position.set(x, y, appearance.depth)
 			this.group.add(sprite)
 			this.addEffect({
 				kind: 'spark',
 				object: sprite,
 				material,
 				age: 0,
-				duration: 0.6 + Math.random() * 0.35,
-				startScale: 0.48 + velocity * 0.34,
-				endScale: 0.12,
+				duration: appearance.duration,
+				startScale: appearance.startScale,
+				endScale: appearance.endScale,
 				baseOpacity: material.opacity,
 				startX: x,
 				startY: y,
-				velocityX: Math.cos(angle) * speed,
-				velocityY: Math.sin(angle) * speed,
+				velocityX: appearance.velocityX,
+				velocityY: appearance.velocityY,
 			})
 		}
 	}
@@ -348,39 +354,33 @@ export class NoteImpactEffects {
 
 		this.clearCustomAt(x, y)
 
-		const velocityScale = 0.75 + velocity * 0.5
-		const configuredStart = this.settings.customImpactStartScale * velocityScale
-		const configuredEnd = this.settings.customImpactEndScale * velocityScale
-		const requestedStartScale =
-			this.settings.customImpactScaleMode === 'expand'
-				? configuredStart
-				: configuredEnd
-		const minimumCoverScale = this.settings.noteSize * 1.5
-		const startScale = Math.max(requestedStartScale, minimumCoverScale)
-		const endScale =
-			this.settings.customImpactScaleMode === 'expand'
-				? configuredEnd
-				: configuredStart
-		const baseOpacity =
-			this.settings.customImpactOpacity * (0.55 + velocity * 0.45)
+		const appearance = calculateCustomEffectAppearance({
+			velocity,
+			configuredDuration: this.settings.customImpactDuration,
+			configuredOpacity: this.settings.customImpactOpacity,
+			configuredStartScale: this.settings.customImpactStartScale,
+			configuredEndScale: this.settings.customImpactEndScale,
+			scaleMode: this.settings.customImpactScaleMode,
+			noteSize: this.settings.noteSize,
+		})
 		const material = this.createPlaneMaterial(
 			this.customTexture,
 			color,
-			baseOpacity,
+			appearance.opacity,
 			THREE.NormalBlending,
 		)
 		const mesh = new THREE.Mesh(this.planeGeometry, material)
-		mesh.position.set(x, y, 0.1)
+		mesh.position.set(x, y, appearance.depth)
 		this.group.add(mesh)
 		this.addEffect({
 			kind: 'custom',
 			object: mesh,
 			material,
 			age: 0,
-			duration: this.settings.customImpactDuration,
-			startScale,
-			endScale,
-			baseOpacity,
+			duration: appearance.duration,
+			startScale: appearance.startScale,
+			endScale: appearance.endScale,
+			baseOpacity: appearance.opacity,
 			startX: x,
 			startY: y,
 			velocityX: 0,
@@ -430,12 +430,15 @@ export class NoteImpactEffects {
 		effect.object.scale.setScalar(effect.startScale)
 		this.activeEffects.push(effect)
 
-		while (this.activeEffects.length > MAX_ACTIVE_EFFECTS) {
+		while (
+			this.activeEffects.length >
+				EFFECT_TUNING.noteImpact.maxActiveEffects
+		) {
 			this.removeAt(0)
 		}
 	}
 
-	private clearKind(kind: EffectKind): void {
+	private clearKind(kind: NoteImpactKind): void {
 		for (let index = this.activeEffects.length - 1; index >= 0; index -= 1) {
 			if (this.activeEffects[index].kind === kind) {
 				this.removeAt(index)
@@ -444,7 +447,7 @@ export class NoteImpactEffects {
 	}
 
 	private clearCustomAt(x: number, y: number): void {
-		const positionTolerance = 0.0001
+		const positionTolerance = EFFECT_TUNING.custom.positionTolerance
 
 		for (let index = this.activeEffects.length - 1; index >= 0; index -= 1) {
 			const effect = this.activeEffects[index]

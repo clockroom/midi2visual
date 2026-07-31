@@ -56,6 +56,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/stage/timeline.ts` | 実時間基準の再生時刻管理 |
 | `src/stage/visualizer.ts` | Three.jsシーン、ノート、枠、背景、カメラ |
 | `src/stage/distance-visibility.ts` | ノートとレベルメータで共有するFog軽減Shader処理 |
+| `src/stage/effect-tuning.ts` | ノート表示、Note Onエフェクト4種、ロングトーン粒子の調整値と計算式 |
 | `src/stage/effects.ts` | 発音時エフェクトの生成、時間更新、Texture管理 |
 | `src/stage/long-note-dissolve.ts` | ロングトーン粒子Burstの生成、拡散、上限管理 |
 | `src/stage/level-meters.ts` | Trackレベルメータの状態、減衰、InstancedMesh描画 |
