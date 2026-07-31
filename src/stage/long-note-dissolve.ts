@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import type { AppSettings } from '../shared/types'
 import { clampOpacity } from './effect-tuning/math'
 import {
 	calculateLongNoteParticleFrame,
@@ -11,6 +10,10 @@ import {
 	getLongNoteMinimumDurationSeconds,
 	getLongNoteRenderOrder,
 } from './effect-tuning/long-note'
+import {
+	type StageContext,
+	type StageSettingsChange,
+} from './stage-context'
 
 interface DissolveBurst {
 	points: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>
@@ -23,7 +26,7 @@ interface DissolveBurst {
 	particleCount: number
 }
 
-export interface LongNoteDissolveRequest {
+export interface LongNoteDissolveTriggerRequest {
 	positions: THREE.Vector3[]
 	color: number
 	durationSeconds: number
@@ -37,34 +40,27 @@ export class LongNoteDissolveEffects {
 	private sparkTexture: THREE.Texture | null = null
 	private activeParticleCount = 0
 	private loadGeneration = 0
-	private settings: AppSettings
+	private readonly unsubscribeSettings: () => void
 
 	constructor(
 		private readonly group: THREE.Group,
-		settings: AppSettings,
+		private readonly context: StageContext,
 	) {
-		this.settings = settings
+		this.unsubscribeSettings = context.subscribe((change) => {
+			this.handleSettingsChanged(change)
+		})
 		void this.loadTexture()
-	}
-
-	applySettings(settings: AppSettings): void {
-		const wasEnabled = this.settings.showLongNoteDissolve
-		this.settings = settings
-
-		if (wasEnabled && !settings.showLongNoteDissolve) {
-			this.clear()
-		}
 	}
 
 	canTrigger(durationSeconds: number): boolean {
 		return (
-			this.settings.showLongNoteDissolve &&
+			this.context.settings.showLongNoteDissolve &&
 			this.sparkTexture !== null &&
 			durationSeconds >= getLongNoteMinimumDurationSeconds()
 		)
 	}
 
-	trigger(request: LongNoteDissolveRequest): boolean {
+	trigger(request: LongNoteDissolveTriggerRequest): boolean {
 		if (
 			!this.canTrigger(request.durationSeconds) ||
 			request.positions.length === 0 ||
@@ -110,7 +106,7 @@ export class LongNoteDissolveEffects {
 			new THREE.BufferAttribute(positions, 3),
 		)
 		const startSize = clampLongNoteParticleSize(
-			this.settings.longNoteDissolveParticleSize,
+			this.context.settings.longNoteDissolveParticleSize,
 		)
 		const material = new THREE.PointsMaterial({
 			color: request.color,
@@ -194,10 +190,20 @@ export class LongNoteDissolveEffects {
 	}
 
 	dispose(): void {
+		this.unsubscribeSettings()
 		this.clear()
 		this.loadGeneration += 1
 		this.sparkTexture?.dispose()
 		this.sparkTexture = null
+	}
+
+	private handleSettingsChanged({
+		previous,
+		current,
+	}: StageSettingsChange): void {
+		if (previous.showLongNoteDissolve && !current.showLongNoteDissolve) {
+			this.clear()
+		}
 	}
 
 	private async loadTexture(): Promise<void> {

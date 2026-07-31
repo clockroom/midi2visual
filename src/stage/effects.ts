@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import { normalizePublicFileName, toPublicFileUrl } from '../shared/public-files'
-import type { AppSettings } from '../shared/types'
 import { clampOpacity } from './effect-tuning/math'
 import {
 	calculateCoreFlashAppearance,
@@ -14,6 +13,17 @@ import {
 	getNoteImpactMaxDeltaSeconds,
 	type NoteImpactKind,
 } from './effect-tuning/note-on'
+import {
+	type StageContext,
+	type StageSettingsChange,
+} from './stage-context'
+
+export interface NoteImpactTriggerRequest {
+	x: number
+	y: number
+	color: number
+	velocity: number
+}
 
 interface ActiveEffect {
 	kind: NoteImpactKind
@@ -48,59 +58,36 @@ export class NoteImpactEffects {
 	private customTexture: THREE.Texture | null = null
 	private customTextureFileName = ''
 	private customLoadGeneration = 0
-	private settings: AppSettings
+	private readonly unsubscribeSettings: () => void
 
 	constructor(
 		private readonly group: THREE.Group,
-		settings: AppSettings,
+		private readonly context: StageContext,
 	) {
-		this.settings = settings
+		this.unsubscribeSettings = context.subscribe((change) => {
+			this.handleSettingsChanged(change)
+		})
 		void this.loadBuiltInTextures()
 		void this.loadCustomTextureIfNeeded()
 	}
 
-	applySettings(settings: AppSettings): void {
-		const previous = this.settings
-		this.settings = settings
+	trigger(request: NoteImpactTriggerRequest): void {
+		const { x, y, color, velocity } = request
+		const settings = this.context.settings
 
-		if (previous.showCoreFlash && !settings.showCoreFlash) {
-			this.clearKind('flash')
-		}
-
-		if (previous.showImpactRing && !settings.showImpactRing) {
-			this.clearKind('ring')
-		}
-
-		if (previous.showSparks && !settings.showSparks) {
-			this.clearKind('spark')
-		}
-
-		if (previous.showCustomImpactImage && !settings.showCustomImpactImage) {
-			this.clearKind('custom')
-		}
-
-		if (
-			previous.showCustomImpactImage !== settings.showCustomImpactImage ||
-			previous.customImpactImageFileName !== settings.customImpactImageFileName
-		) {
-			void this.loadCustomTextureIfNeeded()
-		}
-	}
-
-	trigger(x: number, y: number, color: number, velocity: number): void {
-		if (this.settings.showCoreFlash && this.flashTexture) {
+		if (settings.showCoreFlash && this.flashTexture) {
 			this.createFlash(x, y, color, velocity)
 		}
 
-		if (this.settings.showImpactRing && this.ringTexture) {
+		if (settings.showImpactRing && this.ringTexture) {
 			this.createRing(x, y, color, velocity)
 		}
 
-		if (this.settings.showSparks && this.sparkTexture) {
+		if (settings.showSparks && this.sparkTexture) {
 			this.createSparks(x, y, color, velocity)
 		}
 
-		if (this.settings.showCustomImpactImage && this.customTexture) {
+		if (settings.showCustomImpactImage && this.customTexture) {
 			this.createCustomImage(x, y, color, velocity)
 		}
 	}
@@ -148,12 +135,41 @@ export class NoteImpactEffects {
 	}
 
 	dispose(): void {
+		this.unsubscribeSettings()
 		this.clear()
 		this.planeGeometry.dispose()
 		this.flashTexture?.dispose()
 		this.ringTexture?.dispose()
 		this.sparkTexture?.dispose()
 		this.customTexture?.dispose()
+	}
+
+	private handleSettingsChanged({
+		previous,
+		current,
+	}: StageSettingsChange): void {
+		if (previous.showCoreFlash && !current.showCoreFlash) {
+			this.clearKind('flash')
+		}
+
+		if (previous.showImpactRing && !current.showImpactRing) {
+			this.clearKind('ring')
+		}
+
+		if (previous.showSparks && !current.showSparks) {
+			this.clearKind('spark')
+		}
+
+		if (previous.showCustomImpactImage && !current.showCustomImpactImage) {
+			this.clearKind('custom')
+		}
+
+		if (
+			previous.showCustomImpactImage !== current.showCustomImpactImage ||
+			previous.customImpactImageFileName !== current.customImpactImageFileName
+		) {
+			void this.loadCustomTextureIfNeeded()
+		}
 	}
 
 	private async loadBuiltInTextures(): Promise<void> {
@@ -185,7 +201,9 @@ export class NoteImpactEffects {
 	private async loadCustomTextureIfNeeded(): Promise<void> {
 		const generation = ++this.customLoadGeneration
 
-		if (!this.settings.showCustomImpactImage) {
+		const settings = this.context.settings
+
+		if (!settings.showCustomImpactImage) {
 			this.customTexture?.dispose()
 			this.customTexture = null
 			this.customTextureFileName = ''
@@ -193,7 +211,7 @@ export class NoteImpactEffects {
 		}
 
 		const fileName = normalizePublicFileName(
-			this.settings.customImpactImageFileName,
+			settings.customImpactImageFileName,
 			CUSTOM_DEFAULT_FILE_NAME,
 			'.png',
 		)
@@ -357,14 +375,15 @@ export class NoteImpactEffects {
 
 		this.clearCustomAt(x, y)
 
+		const settings = this.context.settings
 		const appearance = calculateCustomEffectAppearance({
 			velocity,
-			configuredDuration: this.settings.customImpactDuration,
-			configuredOpacity: this.settings.customImpactOpacity,
-			configuredStartScale: this.settings.customImpactStartScale,
-			configuredEndScale: this.settings.customImpactEndScale,
-			scaleMode: this.settings.customImpactScaleMode,
-			noteSize: this.settings.noteSize,
+			configuredDuration: settings.customImpactDuration,
+			configuredOpacity: settings.customImpactOpacity,
+			configuredStartScale: settings.customImpactStartScale,
+			configuredEndScale: settings.customImpactEndScale,
+			scaleMode: settings.customImpactScaleMode,
+			noteSize: settings.noteSize,
 		})
 		const material = this.createPlaneMaterial(
 			this.customTexture,

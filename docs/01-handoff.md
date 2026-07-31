@@ -54,6 +54,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/shared/public-files.ts` | `public`直下のファイル名正規化とURL生成 |
 | `src/shared/channel.ts` | `BroadcastChannel`の薄いラッパー |
 | `src/stage/timeline.ts` | 実時間基準の再生時刻管理 |
+| `src/stage/stage-context.ts` | Stage内の最新設定と変更通知を共有するContext |
 | `src/stage/visualizer.ts` | Three.jsシーン、ノート、枠、背景、カメラ |
 | `src/stage/distance-visibility.ts` | ノートとレベルメータで共有するFog軽減Shader処理 |
 | `src/stage/effect-tuning/note.ts` | 通常ノート、発音中、Note Off残光の表示調整 |
@@ -91,6 +92,8 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - `showMeasureCounter`は現在BPMと拍数カウンターの表示フラグです。名称は旧仕様由来です。
 - MIDIとカスタム画像のファイル名も設定として永続化します。
 - 組み込み画像は`public/assets`、ユーザーが差し替えるファイルは`public`直下に置きます。
+- Stage側では`StageContext`を設定の正本とし、各描画クラスが同じInstanceを参照します。
+- 設定変更時の副作用は`StageContext`の変更通知を各担当クラスが購読します。
 
 ### カメラ
 

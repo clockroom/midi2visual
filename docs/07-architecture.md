@@ -55,6 +55,7 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	├─ long-note-dissolve.ts
 │	│	├─ main.ts
 │	│	├─ palette.ts
+│	│	├─ stage-context.ts
 │	│	├─ timeline.ts
 │	│	└─ visualizer.ts
 │	└─ styles/
@@ -116,6 +117,15 @@ Three.jsへ依存しません。
 
 描画やDOMへ依存しません。
 
+### `stage/stage-context.ts`
+
+- Stage画面で共有する最新`AppSettings`の保持
+- 読み取り専用設定Accessor
+- 設定変更前後のSnapshot通知
+- 購読解除関数によるLifecycle管理
+
+グローバルSingletonにはせず、`stage/main.ts`が生成した1つのInstanceをStage内の各描画クラスへ注入します。各エフェクト固有のRequest生成や描画状態は保持しません。
+
 ### `stage/visualizer.ts`
 
 - Renderer、Scene、Camera
@@ -166,6 +176,7 @@ Three.jsへ依存しません。
 - Note On時のコアフラッシュ、リング、スパーク、カスタム画像生成
 - `effect-tuning/note-on.ts`の計算結果をThree.js Objectへ適用
 - Active EffectとTextureのDispose
+- 専用`NoteImpactTriggerRequest`による発音入力
 
 ### `stage/long-note-dissolve.ts`
 
@@ -174,6 +185,7 @@ Three.jsへ依存しません。
 - `effect-tuning/long-note.ts`の計算結果を`THREE.Points`へ適用
 - Active粒子数の上限制御
 - Three.js ResourceのDispose
+- 専用`LongNoteDissolveTriggerRequest`による粒子化入力
 
 ### `stage/level-meters.ts`
 
@@ -184,6 +196,7 @@ Three.jsへ依存しません。
 - 感度に応じたZone境界の線形補間
 - 色、Opacity、高さ、幅の即時更新
 - 共通Fog軽減Shader Uniformの更新
+- 専用`LevelMeterTriggerRequest`によるNote On入力
 
 ### `stage/palette.ts`
 
@@ -225,6 +238,10 @@ flowchart LR
 	Control["control/main.ts"] --> Storage["localStorage"]
 	Control --> Channel["BroadcastChannel"]
 	Channel --> Stage
+	Stage --> Context["StageContext"]
+	Context --> Visualizer
+	Context --> Effects
+	Context --> Meters
 ```
 
 ## 描画更新

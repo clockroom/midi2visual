@@ -3,7 +3,8 @@ import { AppChannel } from '../shared/channel'
 import { loadMidiModel } from '../shared/midi'
 import { normalizePublicFileName } from '../shared/public-files'
 import { loadSettings } from '../shared/settings'
-import type { AppSettings, MidiModel } from '../shared/types'
+import type { MidiModel } from '../shared/types'
+import { StageContext } from './stage-context'
 import { PlaybackTimeline } from './timeline'
 import { MidiVisualizer } from './visualizer'
 
@@ -23,10 +24,10 @@ const playbackMetrics = getRequiredElement<HTMLElement>('#playback-metrics')
 const bpmCounter = getRequiredElement<HTMLElement>('#bpm-counter')
 const beatCounter = getRequiredElement<HTMLElement>('#beat-counter')
 
-let settings = loadSettings()
+const context = new StageContext(loadSettings())
 let model: MidiModel | null = null
 let timeline: PlaybackTimeline | null = null
-const visualizer = new MidiVisualizer(stage, settings)
+const visualizer = new MidiVisualizer(stage, context)
 const channel = new AppChannel()
 const pressedCameraKeys = new Set<string>()
 let previousFrameMilliseconds: number | null = null
@@ -41,7 +42,7 @@ const cameraControlCodes = new Set([
 
 async function reloadMidi(
 	notifyControl = false,
-	requestedFileName = settings.midiFileName,
+	requestedFileName = context.settings.midiFileName,
 ): Promise<void> {
 	const fileName = normalizePublicFileName(requestedFileName, 'input.mid', '.mid')
 	loading.hidden = false
@@ -50,8 +51,8 @@ async function reloadMidi(
 	try {
 		model = await loadMidiModel(fileName)
 		timeline = new PlaybackTimeline(
-			settings.preRollSeconds,
-			settings.postRollSeconds,
+			context.settings.preRollSeconds,
+			context.settings.postRollSeconds,
 			model.durationSeconds,
 		)
 		visualizer.load(model)
@@ -61,7 +62,7 @@ async function reloadMidi(
 			'--beat-counter-width',
 			`${Math.max(9, beatDigits * 2 + 5)}ch`,
 		)
-		updatePlaybackMetrics(-settings.preRollSeconds)
+		updatePlaybackMetrics(-context.settings.preRollSeconds)
 
 		if (notifyControl) {
 			channel.send({ type: 'midiReloaded', fileName })
@@ -78,16 +79,14 @@ async function reloadMidi(
 	}
 }
 
-function applySettings(nextSettings: AppSettings): void {
-	settings = nextSettings
-	visualizer.applySettings(settings)
+const unsubscribeSettings = context.subscribe(({ current }) => {
 	timeline?.reconfigure(
-		settings.preRollSeconds,
-		settings.postRollSeconds,
+		current.preRollSeconds,
+		current.postRollSeconds,
 		model?.durationSeconds ?? 0,
 	)
-	updatePlaybackMetrics(timeline?.currentSeconds ?? -settings.preRollSeconds)
-}
+	updatePlaybackMetrics(timeline?.currentSeconds ?? -current.preRollSeconds)
+})
 
 function findMarkerIndexAtTime(
 	markers: ReadonlyArray<{ seconds: number }>,
@@ -116,7 +115,7 @@ function formatBpm(bpm: number): string {
 }
 
 function updatePlaybackMetrics(songSeconds: number): void {
-	if (!model || !settings.showMeasureCounter) {
+	if (!model || !context.settings.showMeasureCounter) {
 		playbackMetrics.hidden = true
 		return
 	}
@@ -162,7 +161,8 @@ function animate(nowMilliseconds: number): void {
 		zoomDirection,
 		deltaSeconds,
 	)
-	const songSeconds = timeline?.update(nowMilliseconds) ?? -settings.preRollSeconds
+	const songSeconds =
+		timeline?.update(nowMilliseconds) ?? -context.settings.preRollSeconds
 	visualizer.render(songSeconds)
 	updatePlaybackMetrics(songSeconds)
 	requestAnimationFrame(animate)
@@ -214,7 +214,7 @@ window.addEventListener('blur', () => {
 
 channel.subscribe((message) => {
 	if (message.type === 'settingsChanged') {
-		applySettings(message.settings)
+		context.updateSettings(message.settings)
 	}
 
 	if (message.type === 'reloadMidi') {
@@ -224,14 +224,15 @@ channel.subscribe((message) => {
 
 window.addEventListener('storage', (event) => {
 	if (event.key?.startsWith('midi2visual.settings')) {
-		applySettings(loadSettings())
+		context.updateSettings(loadSettings())
 	}
 })
 
 window.addEventListener('beforeunload', () => {
+	unsubscribeSettings()
 	channel.close()
 	visualizer.dispose()
 })
 
-void reloadMidi(false, settings.midiFileName)
+void reloadMidi(false, context.settings.midiFileName)
 requestAnimationFrame(animate)

@@ -21,6 +21,10 @@ import { NoteImpactEffects } from './effects'
 import { TrackLevelMeters } from './level-meters'
 import { LongNoteDissolveEffects } from './long-note-dissolve'
 import { TRACK_PALETTE } from './palette'
+import {
+	type StageContext,
+	type StageSettingsChange,
+} from './stage-context'
 
 interface NoteObject {
 	note: VisualNote
@@ -52,8 +56,8 @@ export class MidiVisualizer {
 	private readonly impactEffects: NoteImpactEffects
 	private readonly longDissolveEffects: LongNoteDissolveEffects
 	private readonly levelMeters: TrackLevelMeters
+	private readonly unsubscribeSettings: () => void
 	private model: MidiModel | null = null
-	private settings: AppSettings
 	private previousEffectSongSeconds: number | null = null
 	private previousNoteSongTicks: number | null = null
 	private nextEffectNoteIndex = 0
@@ -69,14 +73,17 @@ export class MidiVisualizer {
 	private initialOrbitDistance = 1
 	private cameraOrbitInitialized = false
 
-	constructor(container: HTMLElement, settings: AppSettings) {
-		this.settings = settings
-		this.impactEffects = new NoteImpactEffects(this.effectsGroup, settings)
+	constructor(
+		container: HTMLElement,
+		private readonly context: StageContext,
+	) {
+		const settings = context.settings
+		this.impactEffects = new NoteImpactEffects(this.effectsGroup, context)
 		this.longDissolveEffects = new LongNoteDissolveEffects(
 			this.effectsGroup,
-			settings,
+			context,
 		)
-		this.levelMeters = new TrackLevelMeters(settings)
+		this.levelMeters = new TrackLevelMeters(context)
 		this.renderer = new THREE.WebGLRenderer({
 			antialias: true,
 			alpha: false,
@@ -105,6 +112,13 @@ export class MidiVisualizer {
 
 		window.addEventListener('resize', this.resize)
 		this.applyBackground()
+		this.unsubscribeSettings = context.subscribe((change) => {
+			this.handleSettingsChanged(change)
+		})
+	}
+
+	private get settings(): Readonly<AppSettings> {
+		return this.context.settings
 	}
 
 	load(model: MidiModel): void {
@@ -127,12 +141,10 @@ export class MidiVisualizer {
 		this.updateCamera(true)
 	}
 
-	applySettings(settings: AppSettings): void {
-		const previous = this.settings
-		this.settings = settings
-		this.impactEffects.applySettings(settings)
-		this.longDissolveEffects.applySettings(settings)
-
+	private handleSettingsChanged({
+		previous,
+		current: settings,
+	}: StageSettingsChange): void {
 		if (
 			previous.longNoteFadeEnabled !== settings.longNoteFadeEnabled ||
 			previous.longNoteFadeStartBeats !== settings.longNoteFadeStartBeats ||
@@ -259,6 +271,7 @@ export class MidiVisualizer {
 	}
 
 	dispose(): void {
+		this.unsubscribeSettings()
 		window.removeEventListener('resize', this.resize)
 		this.impactEffects.dispose()
 		this.longDissolveEffects.dispose()
@@ -713,13 +726,16 @@ export class MidiVisualizer {
 
 			if (note.startSeconds > this.previousEffectSongSeconds) {
 				const color = TRACK_PALETTE[note.trackIndex % TRACK_PALETTE.length]
-				this.impactEffects.trigger(
-					note.trackIndex * this.settings.trackSpacing,
-					this.pitchToY(note.pitch),
+				this.impactEffects.trigger({
+					x: note.trackIndex * this.settings.trackSpacing,
+					y: this.pitchToY(note.pitch),
 					color,
-					note.velocity,
-				)
-				this.levelMeters.trigger(note.trackIndex, note.velocity)
+					velocity: note.velocity,
+				})
+				this.levelMeters.trigger({
+					trackIndex: note.trackIndex,
+					velocity: note.velocity,
+				})
 			}
 
 			this.nextEffectNoteIndex += 1
@@ -737,7 +753,7 @@ export class MidiVisualizer {
 			return
 		}
 
-		this.levelMeters.configure(this.settings, {
+		this.levelMeters.configure({
 			trackCount: this.model.trackCount,
 			trackSpacing: this.settings.trackSpacing,
 			bottomY: this.centerY - this.worldHeight / 2,

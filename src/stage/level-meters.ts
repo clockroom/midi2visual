@@ -1,10 +1,18 @@
 import * as THREE from 'three'
-import type { AppSettings } from '../shared/types'
 import {
 	applyDistanceVisibility,
 	type DistanceVisibilityUniform,
 } from './distance-visibility'
 import { TRACK_PALETTE } from './palette'
+import {
+	type StageContext,
+	type StageSettingsChange,
+} from './stage-context'
+
+export interface LevelMeterTriggerRequest {
+	trackIndex: number
+	velocity: number
+}
 
 interface MeterState {
 	level: number
@@ -53,28 +61,29 @@ export class TrackLevelMeters {
 	private readonly scale = new THREE.Vector3()
 	private readonly rotation = new THREE.Quaternion()
 	private readonly distanceVisibilityUniform: DistanceVisibilityUniform
-	private settings: AppSettings
+	private readonly unsubscribeSettings: () => void
 	private layout: MeterLayout | null = null
 	private instancesDirty = false
 
-	constructor(settings: AppSettings) {
-		this.settings = settings
+	constructor(private readonly context: StageContext) {
+		const settings = context.settings
 		this.distanceVisibilityUniform = {
 			value: settings.distanceVisibility,
 		}
 		this.group.visible = settings.showLevelMeters
+		this.unsubscribeSettings = context.subscribe((change) => {
+			this.handleSettingsChanged(change)
+		})
 	}
 
-	configure(settings: AppSettings, layout: MeterLayout): void {
+	configure(layout: MeterLayout): void {
+		const settings = this.context.settings
 		const trackCountChanged = this.layout?.trackCount !== layout.trackCount
-		const sensitivityChanged =
-			this.settings.levelMeterSensitivity !== settings.levelMeterSensitivity
-		this.settings = settings
 		this.distanceVisibilityUniform.value = settings.distanceVisibility
 		this.layout = layout
 		this.group.visible = settings.showLevelMeters
 
-		if (trackCountChanged || sensitivityChanged || this.zones.length === 0) {
+		if (trackCountChanged || this.zones.length === 0) {
 			this.build(layout.trackCount)
 		}
 
@@ -87,18 +96,22 @@ export class TrackLevelMeters {
 		this.updateInstances()
 	}
 
-	trigger(trackIndex: number, velocity: number): void {
-		if (!this.settings.showLevelMeters) {
+	trigger(request: LevelMeterTriggerRequest): void {
+		if (!this.context.settings.showLevelMeters) {
 			return
 		}
 
-		const state = this.states[trackIndex]
+		const state = this.states[request.trackIndex]
 
 		if (!state) {
 			return
 		}
 
-		const normalizedVelocity = THREE.MathUtils.clamp(velocity, 0, 1)
+		const normalizedVelocity = THREE.MathUtils.clamp(
+			request.velocity,
+			0,
+			1,
+		)
 
 		if (normalizedVelocity >= state.level) {
 			state.level = normalizedVelocity
@@ -110,7 +123,7 @@ export class TrackLevelMeters {
 	}
 
 	update(deltaSeconds: number): void {
-		if (!this.settings.showLevelMeters || deltaSeconds <= 0) {
+		if (!this.context.settings.showLevelMeters || deltaSeconds <= 0) {
 			return
 		}
 
@@ -161,8 +174,31 @@ export class TrackLevelMeters {
 	}
 
 	dispose(): void {
+		this.unsubscribeSettings()
 		this.clearMeshes()
 		this.segmentGeometry.dispose()
+	}
+
+	private handleSettingsChanged({
+		previous,
+		current,
+	}: StageSettingsChange): void {
+		const sensitivityChanged =
+			previous.levelMeterSensitivity !== current.levelMeterSensitivity
+		this.distanceVisibilityUniform.value = current.distanceVisibility
+		this.group.visible = current.showLevelMeters
+
+		if (this.layout && (sensitivityChanged || this.zones.length === 0)) {
+			this.build(this.layout.trackCount)
+		}
+
+		if (!current.showLevelMeters) {
+			this.clear()
+			return
+		}
+
+		this.updateMaterialsAndColors()
+		this.updateInstances()
 	}
 
 	private build(trackCount: number): void {
@@ -200,7 +236,11 @@ export class TrackLevelMeters {
 
 	private getZoneBoundaries(): { lowEnd: number; mediumEnd: number } {
 		const sensitivity =
-			THREE.MathUtils.clamp(this.settings.levelMeterSensitivity, 0, 100) /
+			THREE.MathUtils.clamp(
+				this.context.settings.levelMeterSensitivity,
+				0,
+				100,
+			) /
 			100
 
 		return {
@@ -229,10 +269,11 @@ export class TrackLevelMeters {
 		trackCount: number,
 	): MeterZone {
 		const segmentCount = endSegment - startSegment
+		const settings = this.context.settings
 		const material = new THREE.MeshBasicMaterial({
 			color: 0xffffff,
 			transparent: true,
-			opacity: this.settings.levelMeterOpacity * opacityRatio,
+			opacity: settings.levelMeterOpacity * opacityRatio,
 			blending: THREE.NormalBlending,
 			depthWrite: false,
 			depthTest: true,
@@ -265,9 +306,11 @@ export class TrackLevelMeters {
 			return
 		}
 
+		const settings = this.context.settings
+
 		for (const zone of this.zones) {
 			zone.mesh.material.opacity =
-				this.settings.levelMeterOpacity * zone.opacityRatio
+				settings.levelMeterOpacity * zone.opacityRatio
 			const segmentCount = zone.endSegment - zone.startSegment
 
 			for (let trackIndex = 0; trackIndex < this.layout.trackCount; trackIndex += 1) {
@@ -286,7 +329,7 @@ export class TrackLevelMeters {
 	}
 
 	private getColor(zone: MeterZone, trackIndex: number): THREE.Color {
-		switch (this.settings.levelMeterColorMode) {
+		switch (this.context.settings.levelMeterColorMode) {
 			case 'white':
 				return new THREE.Color(WHITE_METER_COLOR)
 			case 'blue':
@@ -306,13 +349,14 @@ export class TrackLevelMeters {
 			return
 		}
 
+		const settings = this.context.settings
 		const maxHeight =
 			this.layout.worldHeight *
-			(this.settings.levelMeterMaxHeightPercent / 100)
+			(settings.levelMeterMaxHeightPercent / 100)
 		const cellHeight = maxHeight / TOTAL_SEGMENTS
 		const segmentHeight = cellHeight * SEGMENT_HEIGHT_RATIO
 		const meterWidth =
-			this.layout.trackSpacing * (this.settings.levelMeterWidthPercent / 100)
+			this.layout.trackSpacing * (settings.levelMeterWidthPercent / 100)
 
 		for (const zone of this.zones) {
 			const segmentCount = zone.endSegment - zone.startSegment
@@ -330,7 +374,7 @@ export class TrackLevelMeters {
 					this.position.set(
 						trackIndex * this.layout.trackSpacing,
 						this.layout.bottomY + (segmentIndex + 0.5) * cellHeight,
-						Z_FIGHTING_OFFSET - this.settings.levelMeterDepthOffset,
+						Z_FIGHTING_OFFSET - settings.levelMeterDepthOffset,
 					)
 					this.scale.set(
 						active ? meterWidth : INACTIVE_SCALE,
