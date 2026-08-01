@@ -347,15 +347,15 @@ ContextはグローバルSingletonにせず、各エフェクトのTrigger Reque
 
 ### 判断
 
-設定へ`effectVelocityEmphasisPercent`と`effectVelocityCharacteristicPercent`を追加し、`StageContext.toEffectVelocity()`でMIDI Velocityを`0〜2`の演出用Velocityへ変換する。Note Onごとに1度だけ変換し、拡散リング、スパーク、カスタム画像へ使用する。コアフラッシュ、ノート、ロングトーン、レベルメータは元のVelocityを維持する。
+設定へ`effectVelocityEmphasisPercent`、`effectVelocityCharacteristicPercent`、`effectVelocityThresholdPercent`を追加し、`StageContext.toEffectVelocity()`でMIDI Velocityを`0〜2`の演出用Velocityへ変換する。Note Onごとに1度だけ変換し、拡散リング、スパーク、カスタム画像へ使用する。コアフラッシュ、ノート、ロングトーン、レベルメータは元のVelocityを維持する。
 
-強調`0〜100%`では最小値を`1 - 強調率`、最大値を`1`とし、`100〜200%`では最小値を`0`、最大値を強調率とする。入力`0.5`地点は最小と最大の間を強調特性で補間し、その前後を2本の一次関数で接続する。
+強調`0〜100%`では最小値を`1 - 強調率`、最大値を`1`とし、`100〜200%`では最小値を`0`、最大値を強調率とする。Middleは最小と最大の間を強調特性で補間する。強調閾値はMiddleへ到達する入力Velocityを決め、その前後を2本の一次関数で接続する。
 
 ### 理由
 
 各エフェクトが個別に設定を参照してVelocityを変換すると、変換仕様の変更箇所が分散します。設定を保持するStageContextへ変換を集約し、発音エフェクトの入口で適用対象を選ぶことで、調整関数の純粋性とエフェクトごとの責務を維持します。
 
-初期値`100% / 50%`は無変換です。強調を下げると弱いNote Onを持ち上げ、上げると最大出力を`2`まで拡大します。強調特性は入力`0.5`地点の出力を調整します。Opacityは従来どおり`0〜1`へ制限し、スパーク数にも既存の安全上限を適用します。
+初期値`100% / 50% / 50%`は無変換です。強調を下げると弱いNote Onを持ち上げ、上げると最大出力を`2`まで拡大します。強調特性はMiddleの出力値、強調閾値はMiddleになる入力値を調整します。Opacityは従来どおり`0〜1`へ制限し、スパーク数にも既存の安全上限を適用します。
 
 ## 球面オービットカメラ
 

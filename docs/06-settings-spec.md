@@ -70,7 +70,8 @@ PCの詳細設定では、ノートを左列の2行へSpanし、右列へガイ�
 | `showImpactRing` | `true` | ON/OFF | Note On時の拡散リング |
 | `showSparks` | `true` | ON/OFF | Note On時のスパーク |
 | `effectVelocityEmphasisPercent` | `100` | `0〜200`, step `1` | リング、スパーク、カスタム画像へ適用するVelocity強調率 |
-| `effectVelocityCharacteristicPercent` | `50` | `0〜100`, step `1` | 変換後Velocityの入力`0.5`地点を最小から最大の間で決める割合 |
+| `effectVelocityCharacteristicPercent` | `50` | `0〜100`, step `1` | Middleの出力値を最小から最大の間で決める割合 |
+| `effectVelocityThresholdPercent` | `50` | `20〜80`, step `1` | 出力がMiddleになる入力Velocityの位置 |
 | `showCustomImpactImage` | `true` | ON/OFF | Note On時のカスタム画像 |
 | `customImpactImageFileName` | `custom.png` | Text | `public`直下から読む画像名。拡張子省略時は`.png` |
 | `customImpactDuration` | `0.8` | `0.1〜3`, step `0.05` | カスタム画像の表示時間 |
@@ -121,7 +122,7 @@ PCの詳細設定では、ノートを左列の2行へSpanし、右列へガイ�
 - FOVとレイアウト変更後はカメラの基準距離を再計算する。
 - 現在のカメラ角度と初期距離に対するズーム比は可能な限り維持する。
 - 発音エフェクトのON/OFFは次のNote Onから反映し、OFFにした種類のActive Effectも破棄する。
-- ベロシティ強調と強調特性は、次に生成する拡散リング、スパーク、カスタム画像から反映する。
+- ベロシティ強調、強調特性、強調閾値は、次に生成する拡散リング、スパーク、カスタム画像から反映する。
 - カスタム画像名または表示フラグを変更した場合はTextureを再取得する。
 - `midiFileName`の変更だけでは再解析せず、ファイル設定エリアの「MIDIを再読み込み」または映像画面の`R`で反映する。
 - レベルメータ設定は既存InstanceのMaterial、色、配置、Scaleへ即時反映する。

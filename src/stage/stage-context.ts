@@ -35,13 +35,24 @@ export class StageContext {
 				100,
 				50,
 			) / 100
+		const threshold =
+			clampFinite(
+				this.settings.effectVelocityThresholdPercent,
+				20,
+				80,
+				50,
+			) / 100
 		const minimum = emphasis <= 1 ? 1 - emphasis : 0
 		const maximum = emphasis <= 1 ? 1 : emphasis
 		const middle = lerp(minimum, maximum, characteristic)
 		const transformed =
-			input <= 0.5
-				? lerp(minimum, middle, input * 2)
-				: lerp(middle, maximum, (input - 0.5) * 2)
+			input <= threshold
+				? lerp(minimum, middle, input / threshold)
+				: lerp(
+						middle,
+						maximum,
+						(input - threshold) / (1 - threshold),
+					)
 
 		return clampFinite(transformed, 0, 2, 0)
 	}

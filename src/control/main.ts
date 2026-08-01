@@ -86,11 +86,12 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'longNoteDissolveParticleSize', label: '粒子サイズ (px)', min: 2, max: 32, step: 1 },
 	],
 	'built-in-effect-settings': [
-		{ kind: 'number', key: 'effectVelocityEmphasisPercent', label: 'ベロシティ強調 (%)', min: 0, max: 200, step: 1 },
-		{ kind: 'number', key: 'effectVelocityCharacteristicPercent', label: '強調特性 (%)', min: 0, max: 100, step: 1 },
 		{ kind: 'boolean', key: 'showCoreFlash', label: 'コアフラッシュ' },
 		{ kind: 'boolean', key: 'showImpactRing', label: '拡散リング' },
 		{ kind: 'boolean', key: 'showSparks', label: 'スパーク' },
+		{ kind: 'number', key: 'effectVelocityEmphasisPercent', label: 'ベロシティ強調 (%)', min: 0, max: 200, step: 1 },
+		{ kind: 'number', key: 'effectVelocityCharacteristicPercent', label: '強調特性 (%)', min: 0, max: 100, step: 1 },
+		{ kind: 'number', key: 'effectVelocityThresholdPercent', label: '強調閾値 (%)', min: 20, max: 80, step: 1 },
 	],
 	'custom-effect-settings': [
 		{ kind: 'boolean', key: 'showCustomImpactImage', label: 'カスタム画像' },

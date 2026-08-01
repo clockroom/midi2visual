@@ -35,6 +35,7 @@ export const defaultSettings: AppSettings = {
 	showSparks: true,
 	effectVelocityEmphasisPercent: 100,
 	effectVelocityCharacteristicPercent: 50,
+	effectVelocityThresholdPercent: 50,
 	showCustomImpactImage: true,
 	customImpactImageFileName: 'custom.png',
 	customImpactDuration: 0.8,

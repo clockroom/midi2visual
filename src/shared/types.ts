@@ -30,6 +30,7 @@ export interface AppSettings {
 	showSparks: boolean
 	effectVelocityEmphasisPercent: number
 	effectVelocityCharacteristicPercent: number
+	effectVelocityThresholdPercent: number
 	showCustomImpactImage: boolean
 	customImpactImageFileName: string
 	customImpactDuration: number
