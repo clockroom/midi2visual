@@ -3,11 +3,16 @@ import {
 	calculateNoteImpactFrame,
 	getNoteImpactActiveEffectLimit,
 	getNoteImpactMaxDeltaSeconds,
+	type EffectFrame,
 	type NoteImpactKind,
 } from '../effect-tuning/note-on'
 import { clampNonNegative } from '../effect-tuning/math'
 
 type EffectMaterial = THREE.SpriteMaterial | THREE.MeshBasicMaterial
+type EffectFrameHandler = (
+	object: THREE.Object3D,
+	frame: EffectFrame,
+) => void
 
 export interface ActiveEffectRequest {
 	kind: NoteImpactKind
@@ -20,8 +25,7 @@ export interface ActiveEffectRequest {
 	baseOpacity: number
 	startX: number
 	startY: number
-	velocityX: number
-	velocityY: number
+	onFrame?: EffectFrameHandler
 }
 
 interface ActiveEffect extends ActiveEffectRequest {
@@ -85,13 +89,7 @@ export class ActiveNoteImpactEffects {
 
 			effect.object.scale.setScalar(frame.scale)
 			effect.material.opacity = frame.opacity
-
-			if (effect.kind === 'spark') {
-				effect.object.position.x =
-					effect.startX + effect.velocityX * frame.travel
-				effect.object.position.y =
-					effect.startY + effect.velocityY * frame.travel
-			}
+			effect.onFrame?.(effect.object, frame)
 		}
 	}
 

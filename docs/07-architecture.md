@@ -193,7 +193,8 @@ Three.jsへ依存しません。
 ### `stage/note-impact/active-effects.ts`
 
 - 生成済みNote Onエフェクトの共通Runtime
-- 曲時刻差による遅延、Scale、Opacity、Spark移動の更新
+- 曲時刻差による遅延、Scale、Opacityの更新
+- エフェクト固有のフレーム更新コールバック呼び出し
 - 種類別、位置別、全体のClear
 - Active Effect数の上限制御とMaterial Dispose
 
@@ -213,7 +214,7 @@ Three.jsへ依存しません。
 
 - `spark.png`の非同期読み込み
 - Velocityに応じた個数のSpark Sprite生成
-- 個別の移動速度を共通Runtimeへ登録
+- 個別の移動速度とフレーム更新コールバックの所有
 
 ### `stage/note-impact/custom-image.ts`
 

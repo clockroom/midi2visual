@@ -38,8 +38,6 @@ export class CoreFlashEffect {
 			baseOpacity: material.opacity,
 			startX: request.x,
 			startY: request.y,
-			velocityX: 0,
-			velocityY: 0,
 		})
 	}
 

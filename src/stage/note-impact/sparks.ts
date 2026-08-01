@@ -44,8 +44,12 @@ export class SparkEffects {
 				baseOpacity: material.opacity,
 				startX: request.x,
 				startY: request.y,
-				velocityX: appearance.velocityX,
-				velocityY: appearance.velocityY,
+				onFrame: (object, frame) => {
+					object.position.x =
+						request.x + appearance.velocityX * frame.travel
+					object.position.y =
+						request.y + appearance.velocityY * frame.travel
+				},
 			})
 		}
 	}
