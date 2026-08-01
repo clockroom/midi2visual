@@ -54,6 +54,15 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	├─ level-meters.ts
 │	│	├─ long-note-dissolve.ts
 │	│	├─ main.ts
+│	│	├─ note-impact/
+│	│	│	├─ active-effects.ts
+│	│	│	├─ core-flash.ts
+│	│	│	├─ custom-image.ts
+│	│	│	├─ impact-ring.ts
+│	│	│	├─ materials.ts
+│	│	│	├─ sparks.ts
+│	│	│	├─ texture.ts
+│	│	│	└─ types.ts
 │	│	├─ palette.ts
 │	│	├─ stage-context.ts
 │	│	├─ timeline.ts
@@ -160,6 +169,7 @@ Three.jsへ依存しません。
 
 - Note Onエフェクト4種のDuration、Opacity、Scale、Velocity係数
 - リング、スパーク、カスタム画像で演出用Velocityの`0〜2`を許可
+- 即時と遅延リングのAppearance Sequence計算
 - スパークの個数、速度、移動Curve
 - カスタム画像の最低ScaleとFade Curve
 
@@ -174,12 +184,50 @@ Three.jsへ依存しません。
 
 ### `stage/effects.ts`
 
-- 組み込みTextureとカスタムTextureの非同期読み込み
-- Note On時のコアフラッシュ、リング、スパーク、カスタム画像生成
+- Note Onエフェクト4種を接続するFacade
 - Note Onごとに演出用Velocityを1度だけ取得し、リング、スパーク、カスタム画像へ適用
-- `effect-tuning/note-on.ts`の計算結果をThree.js Objectへ適用
-- Active EffectとTextureのDispose
+- 設定ON/OFFによるTrigger振り分けとActive Effect破棄
+- 共通Runtimeの更新、Clear、Dispose
 - 専用`NoteImpactTriggerRequest`による発音入力
+
+### `stage/note-impact/active-effects.ts`
+
+- 生成済みNote Onエフェクトの共通Runtime
+- 曲時刻差による遅延、Scale、Opacity、Spark移動の更新
+- 種類別、位置別、全体のClear
+- Active Effect数の上限制御とMaterial Dispose
+
+### `stage/note-impact/core-flash.ts`
+
+- `flare.png`の非同期読み込み
+- コアフラッシュSpriteの生成
+- 生VelocityによるAppearance計算結果の適用
+
+### `stage/note-impact/impact-ring.ts`
+
+- `ring.png`の非同期読み込み
+- 即時リングと遅延リングのPlane生成
+- 2枚目リングへのDelayと拡大終了サイズの適用
+
+### `stage/note-impact/sparks.ts`
+
+- `spark.png`の非同期読み込み
+- Velocityに応じた個数のSpark Sprite生成
+- 個別の移動速度を共通Runtimeへ登録
+
+### `stage/note-impact/custom-image.ts`
+
+- 設定された`public`直下画像の非同期読み込みと世代管理
+- ファイル名を読み込み境界で`shared/public-files.ts`の共通Utilityにより検証
+- 同一位置の旧画像破棄とAlpha Blend Plane生成
+
+### `stage/note-impact/materials.ts` / `texture.ts` / `types.ts`
+
+- Note Onエフェクト共通Material生成
+- Texture読込後のColor SpaceとFilter設定
+- 4エフェクトで共有する生成Request型
+
+バレルモジュールは作らず、Facadeと各生成コンポーネントから必要なモジュールを直接Importします。
 
 ### `stage/long-note-dissolve.ts`
 

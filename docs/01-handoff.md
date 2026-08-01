@@ -12,7 +12,7 @@ midi2visualは、DTM成果の公開動画を作るための、音声を再生し
 - Note On / Off、Velocity、Tempo、PPQ、先頭Time Signatureの利用
 - Track、Pitch、Timeを3軸へ割り当てたThree.js描画
 - ノートの発光と残光
-- 発音時のコアフラッシュ、拡散リング、スパーク
+- 発音時のコアフラッシュ、二重の拡散リング、スパーク
 - Track色で合成する拡大・縮小対応カスタム画像
 - Trackごとの20セグメント式Velocityレベルメータ
 - 小節枠と任意の拍枠
@@ -61,7 +61,8 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/stage/effect-tuning/long-note.ts` | ロングトーンFade、粒子、粒子化前発光の調整 |
 | `src/stage/effect-tuning/note-on.ts` | Note Onエフェクト4種の調整 |
 | `src/stage/effect-tuning/math.ts` | 値域制限、非有限値対策、補間とEasing |
-| `src/stage/effects.ts` | 発音時エフェクトの生成、時間更新、Texture管理 |
+| `src/stage/effects.ts` | 4種の発音エフェクトを接続するFacade |
+| `src/stage/note-impact/` | 4種の発音エフェクト生成と共通Active Effect Runtime |
 | `src/stage/long-note-dissolve.ts` | ロングトーン粒子Burstの生成、拡散、上限管理 |
 | `src/stage/level-meters.ts` | Trackレベルメータの状態、減衰、InstancedMesh描画 |
 | `src/stage/palette.ts` | ノート、エフェクト、メータで共有するTrack色 |
@@ -113,6 +114,8 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - 粒子化前に発光を`0秒`にすると事前発光しない
 - 設定した`public`直下のMIDIが読み込まれる
 - 3種の発音エフェクトを個別にON/OFFできる
+- 拡散リングが即時と約`0.12秒`後に表示され、2枚目だけ大きな終了サイズまで広がる
+- 停止中は待機中の2枚目リングの遅延時間が進まない
 - ベロシティ強調、強調特性、強調閾値を変更すると、次のNote Onからリング、スパーク、カスタム画像の強度が変わる
 - 初期値`100% / 50% / 50%`では従来と同じVelocityになる
 - 遠方視認性を上げると、近距離表示を白飛びさせずに遠方のノートとレベルメータが見やすくなる

@@ -36,6 +36,8 @@ export const NOTE_ON_TUNING = {
 		startScaleVelocityInfluence: 0.2,
 		endScaleBase: 1.5,
 		endScaleVelocityInfluence: 1.3,
+		secondaryDelaySeconds: 0.12,
+		secondaryEndScaleMultiplier: 1.25,
 	},
 	sparks: {
 		depth: 0.14,
@@ -81,6 +83,10 @@ export interface EffectAppearance {
 export interface SparkAppearance extends EffectAppearance {
 	velocityX: number
 	velocityY: number
+}
+
+export interface ScheduledEffectAppearance extends EffectAppearance {
+	delaySeconds: number
 }
 
 export interface EffectFrame {
@@ -143,13 +149,12 @@ export function calculateCoreFlashAppearance(
 	}
 }
 
-export function calculateImpactRingAppearance(
+export function calculateImpactRingAppearances(
 	velocity: number,
-): EffectAppearance {
+): ScheduledEffectAppearance[] {
 	const tuning = NOTE_ON_TUNING.impactRing
 	const effectVelocity = clamp(velocity, 0, MAX_EFFECT_VELOCITY, 0)
-
-	return {
+	const appearance: EffectAppearance = {
 		duration: clampPositive(tuning.duration, 0.55),
 		startScale: clampNonNegative(
 			tuning.startScaleBase +
@@ -165,6 +170,27 @@ export function calculateImpactRingAppearance(
 		),
 		depth: finiteOr(tuning.depth, 0.07),
 	}
+
+	return [
+		{
+			...appearance,
+			delaySeconds: 0,
+		},
+		{
+			...appearance,
+			delaySeconds: clampNonNegative(
+				tuning.secondaryDelaySeconds,
+				0.12,
+			),
+			endScale: clampNonNegative(
+				appearance.endScale *
+					clampPositive(
+						tuning.secondaryEndScaleMultiplier,
+						1.25,
+					),
+			),
+		},
+	]
 }
 
 export function calculateSparkCount(velocity: number): number {
