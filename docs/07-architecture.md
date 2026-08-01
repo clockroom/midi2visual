@@ -123,6 +123,7 @@ Three.jsへ依存しません。
 - 読み取り専用設定Accessor
 - 設定変更前後のSnapshot通知
 - 購読解除関数によるLifecycle管理
+- 設定値を使用した演出用Velocity変換
 
 グローバルSingletonにはせず、`stage/main.ts`が生成した1つのInstanceをStage内の各描画クラスへ注入します。各エフェクト固有のRequest生成や描画状態は保持しません。
 
@@ -158,6 +159,7 @@ Three.jsへ依存しません。
 ### `stage/effect-tuning/note-on.ts`
 
 - Note Onエフェクト4種のDuration、Opacity、Scale、Velocity係数
+- リング、スパーク、カスタム画像で演出用Velocityの`0〜2`を許可
 - スパークの個数、速度、移動Curve
 - カスタム画像の最低ScaleとFade Curve
 
@@ -174,6 +176,7 @@ Three.jsへ依存しません。
 
 - 組み込みTextureとカスタムTextureの非同期読み込み
 - Note On時のコアフラッシュ、リング、スパーク、カスタム画像生成
+- Note Onごとに演出用Velocityを1度だけ取得し、リング、スパーク、カスタム画像へ適用
 - `effect-tuning/note-on.ts`の計算結果をThree.js Objectへ適用
 - Active EffectとTextureのDispose
 - 専用`NoteImpactTriggerRequest`による発音入力

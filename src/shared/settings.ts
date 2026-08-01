@@ -33,6 +33,8 @@ export const defaultSettings: AppSettings = {
 	showCoreFlash: true,
 	showImpactRing: true,
 	showSparks: true,
+	effectVelocityEmphasisPercent: 100,
+	effectVelocityCharacteristicPercent: 50,
 	showCustomImpactImage: true,
 	customImpactImageFileName: 'custom.png',
 	customImpactDuration: 0.8,

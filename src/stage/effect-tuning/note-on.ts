@@ -66,6 +66,7 @@ export const NOTE_ON_TUNING = {
 } as const
 
 const ABSOLUTE_MAX_ACTIVE_EFFECTS = 4096
+const MAX_EFFECT_VELOCITY = 2
 
 export type NoteImpactKind = 'flash' | 'ring' | 'spark' | 'custom'
 
@@ -146,21 +147,21 @@ export function calculateImpactRingAppearance(
 	velocity: number,
 ): EffectAppearance {
 	const tuning = NOTE_ON_TUNING.impactRing
-	const normalizedVelocity = clampUnit(velocity)
+	const effectVelocity = clamp(velocity, 0, MAX_EFFECT_VELOCITY, 0)
 
 	return {
 		duration: clampPositive(tuning.duration, 0.55),
 		startScale: clampNonNegative(
 			tuning.startScaleBase +
-				normalizedVelocity * tuning.startScaleVelocityInfluence,
+				effectVelocity * tuning.startScaleVelocityInfluence,
 		),
 		endScale: clampNonNegative(
 			tuning.endScaleBase +
-				normalizedVelocity * tuning.endScaleVelocityInfluence,
+				effectVelocity * tuning.endScaleVelocityInfluence,
 		),
 		opacity: clampOpacity(
 			tuning.opacityBase +
-				normalizedVelocity * tuning.opacityVelocityInfluence,
+				effectVelocity * tuning.opacityVelocityInfluence,
 		),
 		depth: finiteOr(tuning.depth, 0.07),
 	}
@@ -170,7 +171,8 @@ export function calculateSparkCount(velocity: number): number {
 	const tuning = NOTE_ON_TUNING.sparks
 	const requestedCount = Math.round(
 		tuning.countBase +
-			clampUnit(velocity) * tuning.countVelocityInfluence,
+			clamp(velocity, 0, MAX_EFFECT_VELOCITY, 0) *
+				tuning.countVelocityInfluence,
 	)
 	return Math.round(
 		clamp(requestedCount, 0, getNoteImpactActiveEffectLimit()),
@@ -182,12 +184,12 @@ export function calculateSparkAppearance(
 	random: () => number = Math.random,
 ): SparkAppearance {
 	const tuning = NOTE_ON_TUNING.sparks
-	const normalizedVelocity = clampUnit(velocity)
+	const effectVelocity = clamp(velocity, 0, MAX_EFFECT_VELOCITY, 0)
 	const angle = safeRandom(random) * Math.PI * 2
 	const speed = clampNonNegative(
 		tuning.speedBase +
 			safeRandom(random) * tuning.speedRandomRange +
-			normalizedVelocity * tuning.speedVelocityInfluence,
+			effectVelocity * tuning.speedVelocityInfluence,
 	)
 
 	return {
@@ -198,12 +200,12 @@ export function calculateSparkAppearance(
 		),
 		startScale: clampNonNegative(
 			tuning.startScaleBase +
-				normalizedVelocity * tuning.startScaleVelocityInfluence,
+				effectVelocity * tuning.startScaleVelocityInfluence,
 		),
 		endScale: clampNonNegative(tuning.endScale),
 		opacity: clampOpacity(
 			tuning.opacityBase +
-				normalizedVelocity * tuning.opacityVelocityInfluence,
+				effectVelocity * tuning.opacityVelocityInfluence,
 		),
 		depth: finiteOr(tuning.depth, 0.14),
 		velocityX: finiteOr(Math.cos(angle) * speed, 0),
@@ -215,10 +217,15 @@ export function calculateCustomEffectAppearance(
 	input: CustomEffectInput,
 ): EffectAppearance {
 	const tuning = NOTE_ON_TUNING.custom
-	const normalizedVelocity = clampUnit(input.velocity)
+	const effectVelocity = clamp(
+		input.velocity,
+		0,
+		MAX_EFFECT_VELOCITY,
+		0,
+	)
 	const velocityScale = clampNonNegative(
 		tuning.velocityScaleBase +
-			normalizedVelocity * tuning.velocityScaleInfluence,
+			effectVelocity * tuning.velocityScaleInfluence,
 	)
 	const configuredStart =
 		clampNonNegative(input.configuredStartScale) * velocityScale
@@ -238,7 +245,7 @@ export function calculateCustomEffectAppearance(
 		opacity: clampOpacity(
 			input.configuredOpacity *
 				(tuning.opacityVelocityBase +
-					normalizedVelocity * tuning.opacityVelocityInfluence),
+					effectVelocity * tuning.opacityVelocityInfluence),
 		),
 		depth: finiteOr(tuning.depth, 0.1),
 	}

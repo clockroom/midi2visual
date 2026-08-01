@@ -74,21 +74,22 @@ export class NoteImpactEffects {
 	trigger(request: NoteImpactTriggerRequest): void {
 		const { x, y, color, velocity } = request
 		const settings = this.context.settings
+		const effectVelocity = this.context.toEffectVelocity(velocity)
 
 		if (settings.showCoreFlash && this.flashTexture) {
 			this.createFlash(x, y, color, velocity)
 		}
 
 		if (settings.showImpactRing && this.ringTexture) {
-			this.createRing(x, y, color, velocity)
+			this.createRing(x, y, color, effectVelocity)
 		}
 
 		if (settings.showSparks && this.sparkTexture) {
-			this.createSparks(x, y, color, velocity)
+			this.createSparks(x, y, color, effectVelocity)
 		}
 
 		if (settings.showCustomImpactImage && this.customTexture) {
-			this.createCustomImage(x, y, color, velocity)
+			this.createCustomImage(x, y, color, effectVelocity)
 		}
 	}
 

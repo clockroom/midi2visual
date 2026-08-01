@@ -28,6 +28,8 @@ export interface AppSettings {
 	showCoreFlash: boolean
 	showImpactRing: boolean
 	showSparks: boolean
+	effectVelocityEmphasisPercent: number
+	effectVelocityCharacteristicPercent: number
 	showCustomImpactImage: boolean
 	customImpactImageFileName: string
 	customImpactDuration: number
