@@ -9,10 +9,20 @@
 		<main id="stage" aria-label="MIDI visualizer"></main>
 		<div id="loading" class="stage-message">Loading input.mid...</div>
 		<div id="playback-metrics" class="playback-metrics" aria-live="off">
-			<span id="bpm-counter" class="bpm-counter"></span>
-			<span id="beat-counter" class="beat-counter"></span>
+			<div class="metric-card metric-card-bpm" role="group" aria-label="BPM">
+				<img class="metric-icon" src="/assets/metronome.svg" alt="" aria-hidden="true">
+				<span id="bpm-counter" class="metric-value bpm-counter"></span>
+			</div>
+			<div class="metric-card metric-card-beat" role="group" aria-label="拍数">
+				<img class="metric-icon" src="/assets/beat.svg" alt="" aria-hidden="true">
+				<span id="beat-counter" class="metric-value beat-counter"></span>
+			</div>
 		</div>
-		<div class="key-help">Arrows: Orbit / W, S: Zoom / 0: Reset camera / Space: Play / Esc: Stop / R: Reload MIDI</div>
+		<div class="key-help">
+			<span>Arrows: Orbit / W, S: Zoom / 0: Reset camera / Space: Play / Esc: Stop / R: Reload MIDI</span>
+			<span aria-hidden="true">/</span>
+			<span id="viewport-size" class="viewport-size"></span>
+		</div>
 		<script type="module" src="/src/stage/main.ts"></script>
 	</body>
 </html>

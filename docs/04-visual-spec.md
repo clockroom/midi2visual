@@ -210,17 +210,21 @@ z = targetZ + horizontalDistance × cos(azimuth)
 ### BPM
 
 - 右下の拍数表示の左隣へ表示する。
-- 表記は`BPM = n`とする。
-- 表示領域を`14ch`で固定する。
+- `public/assets/metronome.svg`とBPM数値を半透明のMetric Cardへ表示する。
+- 数値領域を固定し、Tempo変更でCard幅を変えない。
 
 ### 拍数
 
-- 表記は`現在拍 / 総拍数`とする。
+- `public/assets/beat.svg`と`現在拍 / 総拍数`をBPMと同じMetric Card形式で表示する。
+- 現在拍は総拍数の桁数に合わせてゼロ埋めする。
 - 総拍数の桁数から初回読み込み時に領域幅を決定する。
-- Tabular Numberと右揃えを使用する。
+- Tabular Numberと左揃えを使用し、Icon直後から数値を表示する。
 - 桁数変化によって右端やBPM欄の位置を移動させない。
+
+BPMと拍数のCardは、暗い半透明背景、細い水色の枠、控えめなGlowを使用し、点滅や常時Animationは行わない。
 
 ### 操作案内
 
 - 画面左下へ薄く表示する。
 - 通常は透明にし、マウスがページ上にある場合だけ表示する。
+- 末尾へClient領域を`幅 x 高さ`で表示し、Window Resizeへ追従する。

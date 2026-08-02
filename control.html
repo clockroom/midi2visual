@@ -43,13 +43,13 @@
 							<h2>ノート</h2>
 							<div id="note-settings" class="field-list"></div>
 						</section>
-						<section class="settings-card advanced-guide">
-							<h2>ガイド</h2>
-							<div id="guide-settings" class="field-list"></div>
-						</section>
 						<section class="settings-card advanced-effect">
 							<h2>エフェクト</h2>
 							<div id="built-in-effect-settings" class="field-list"></div>
+						</section>
+						<section class="settings-card advanced-guide">
+							<h2>ガイド</h2>
+							<div id="guide-settings" class="field-list"></div>
 						</section>
 						<section class="settings-card advanced-camera">
 							<h2>カメラ</h2>
@@ -65,7 +65,7 @@
 
 			<footer class="control-actions">
 				<button id="reset-settings" class="secondary" type="button">初期設定へ戻す</button>
-				<span id="save-status" role="status">保存済み</span>
+				<span id="save-status" role="status" aria-live="polite"></span>
 			</footer>
 		</main>
 		<script type="module" src="/src/control/main.ts"></script>

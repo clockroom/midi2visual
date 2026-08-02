@@ -153,6 +153,32 @@ const groups: Record<string, SettingDefinition[]> = {
 const channel = new AppChannel()
 let settings = loadSettings()
 const saveStatus = document.querySelector<HTMLElement>('#save-status')
+let saveStatusTimer: number | null = null
+
+function showSaveStatus(
+	message: string,
+	state: 'success' | 'error',
+): void {
+	if (!saveStatus) {
+		return
+	}
+
+	if (saveStatusTimer !== null) {
+		window.clearTimeout(saveStatusTimer)
+		saveStatusTimer = null
+	}
+
+	saveStatus.textContent = message
+	saveStatus.dataset.state = state
+	saveStatus.classList.add('is-visible')
+
+	if (state === 'success') {
+		saveStatusTimer = window.setTimeout(() => {
+			saveStatus.classList.remove('is-visible')
+			saveStatusTimer = null
+		}, 1400)
+	}
+}
 
 function isBooleanSetting(
 	definition: SettingDefinition,
@@ -167,12 +193,15 @@ function isColorSetting(
 }
 
 function publish(): void {
-	saveSettings(settings)
-	channel.send({ type: 'settingsChanged', settings: structuredClone(settings) })
-
-	if (saveStatus) {
-		saveStatus.textContent = '保存済み'
+	try {
+		saveSettings(settings)
+		showSaveStatus('保存しました', 'success')
+	} catch (error) {
+		console.error('Settings could not be saved.', error)
+		showSaveStatus('保存に失敗しました', 'error')
 	}
+
+	channel.send({ type: 'settingsChanged', settings: structuredClone(settings) })
 }
 
 function renderControls(): void {
@@ -297,6 +326,12 @@ channel.subscribe((message) => {
 	}
 })
 
-window.addEventListener('beforeunload', () => channel.close())
+window.addEventListener('beforeunload', () => {
+	if (saveStatusTimer !== null) {
+		window.clearTimeout(saveStatusTimer)
+	}
+
+	channel.close()
+})
 
 renderControls()

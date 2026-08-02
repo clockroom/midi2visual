@@ -159,8 +159,8 @@ button {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	grid-template-areas:
-		"note guide"
 		"note effect"
+		"note guide"
 		"camera playback";
 	gap: 1rem;
 	margin-top: 1rem;
@@ -285,6 +285,16 @@ button.secondary {
 	margin-left: auto;
 	color: #668096;
 	font-size: 0.78rem;
+	opacity: 0;
+	transition: opacity 180ms ease;
+}
+
+#save-status.is-visible {
+	opacity: 1;
+}
+
+#save-status[data-state="error"] {
+	color: #ff9eaa;
 }
 
 @media (max-width: 760px) {
@@ -307,8 +317,8 @@ button.secondary {
 		grid-template-columns: 1fr;
 		grid-template-areas:
 			"note"
-			"guide"
 			"effect"
+			"guide"
 			"camera"
 			"playback";
 	}

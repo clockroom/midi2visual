@@ -23,10 +23,12 @@ const loading = getRequiredElement<HTMLElement>('#loading')
 const playbackMetrics = getRequiredElement<HTMLElement>('#playback-metrics')
 const bpmCounter = getRequiredElement<HTMLElement>('#bpm-counter')
 const beatCounter = getRequiredElement<HTMLElement>('#beat-counter')
+const viewportSize = getRequiredElement<HTMLElement>('#viewport-size')
 
 const context = new StageContext(loadSettings())
 let model: MidiModel | null = null
 let timeline: PlaybackTimeline | null = null
+let beatCounterDigits = 1
 const visualizer = new MidiVisualizer(stage, context)
 const channel = new AppChannel()
 const pressedCameraKeys = new Set<string>()
@@ -58,9 +60,10 @@ async function reloadMidi(
 		visualizer.load(model)
 		loading.hidden = true
 		const beatDigits = String(model.totalBeats).length
+		beatCounterDigits = beatDigits
 		playbackMetrics.style.setProperty(
 			'--beat-counter-width',
-			`${Math.max(9, beatDigits * 2 + 5)}ch`,
+			`${Math.max(5, beatDigits * 2 + 3)}ch`,
 		)
 		updatePlaybackMetrics(-context.settings.preRollSeconds)
 
@@ -114,6 +117,14 @@ function formatBpm(bpm: number): string {
 	return Number.isInteger(bpm) ? String(bpm) : bpm.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')
 }
 
+function updateViewportSize(): void {
+	viewportSize.textContent = `${window.innerWidth} x ${window.innerHeight}`
+}
+
+function formatBeatCounter(currentBeat: number, totalBeats: number): string {
+	return `${String(currentBeat).padStart(beatCounterDigits, '0')} / ${totalBeats}`
+}
+
 function updatePlaybackMetrics(songSeconds: number): void {
 	if (!model || !context.settings.showMeasureCounter) {
 		playbackMetrics.hidden = true
@@ -123,21 +134,24 @@ function updatePlaybackMetrics(songSeconds: number): void {
 	playbackMetrics.hidden = false
 	const tempoIndex = findMarkerIndexAtTime(model.tempoMarkers, Math.max(0, songSeconds))
 	const currentBpm = model.tempoMarkers[Math.max(0, tempoIndex)].bpm
-	bpmCounter.textContent = `BPM = ${formatBpm(currentBpm)}`
+	bpmCounter.textContent = formatBpm(currentBpm)
 
 	if (songSeconds < 0) {
-		beatCounter.textContent = `0 / ${model.totalBeats}`
+		beatCounter.textContent = formatBeatCounter(0, model.totalBeats)
 		return
 	}
 
 	if (songSeconds >= model.durationSeconds) {
-		beatCounter.textContent = `${model.totalBeats} / ${model.totalBeats}`
+		beatCounter.textContent = formatBeatCounter(
+			model.totalBeats,
+			model.totalBeats,
+		)
 		return
 	}
 
 	const beatIndex = findMarkerIndexAtTime(model.beatTimeline, songSeconds)
 	const currentBeat = Math.min(Math.max(beatIndex + 1, 1), model.totalBeats)
-	beatCounter.textContent = `${currentBeat} / ${model.totalBeats}`
+	beatCounter.textContent = formatBeatCounter(currentBeat, model.totalBeats)
 }
 
 function animate(nowMilliseconds: number): void {
@@ -212,6 +226,8 @@ window.addEventListener('blur', () => {
 	previousFrameMilliseconds = null
 })
 
+window.addEventListener('resize', updateViewportSize)
+
 channel.subscribe((message) => {
 	if (message.type === 'settingsChanged') {
 		context.updateSettings(message.settings)
@@ -230,9 +246,11 @@ window.addEventListener('storage', (event) => {
 
 window.addEventListener('beforeunload', () => {
 	unsubscribeSettings()
+	window.removeEventListener('resize', updateViewportSize)
 	channel.close()
 	visualizer.dispose()
 })
 
+updateViewportSize()
 void reloadMidi(false, context.settings.midiFileName)
 requestAnimationFrame(animate)

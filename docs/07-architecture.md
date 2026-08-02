@@ -29,7 +29,9 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 ├─ control.html
 ├─ public/
 │	├─ assets/
+│	│	├─ beat.svg
 │	│	├─ flare.png
+│	│	├─ metronome.svg
 │	│	├─ ring.png
 │	│	└─ spark.png
 │	├─ custom.png
