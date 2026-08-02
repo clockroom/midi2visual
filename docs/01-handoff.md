@@ -56,25 +56,25 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/stage/timeline.ts` | 実時間基準の再生時刻管理 |
 | `src/stage/stage-context.ts` | Stage内の最新設定と変更通知を共有するContext |
 | `src/stage/visualizer.ts` | Stage描画オブジェクトを接続するComposition Root |
-| `src/stage/stage-layout.ts` | Track、Pitch、World座標の変換と寸法 |
-| `src/stage/midi-time-map.ts` | 秒とMIDI Tickの相互変換 |
-| `src/stage/stage-environment.ts` | 背景、Fog、Lightの状態とLifecycle |
-| `src/stage/guide-frame.ts` | 小節枠、拍枠、発音平面の具象クラス |
-| `src/stage/timeline-guide-layer.ts` | Timeline GuideのCollectionと時間移動 |
-| `src/stage/rendered-note.ts` | 1ノート分の表示状態、更新、Resource |
-| `src/stage/note-layer.ts` | Rendered Note Collectionとロングトーン粒子化 |
-| `src/stage/note-on-reaction-controller.ts` | Note On走査、発音エフェクト、レベルメータ |
-| `src/stage/orbit-camera-controller.ts` | 球面オービットカメラの状態と操作 |
-| `src/stage/distance-visibility.ts` | ノートとレベルメータで共有するFog軽減Shader処理 |
-| `src/stage/effect-tuning/note.ts` | 通常ノート、発音中、Note Off残光の表示調整 |
-| `src/stage/effect-tuning/long-note.ts` | ロングトーンFade、粒子、粒子化前発光の調整 |
-| `src/stage/effect-tuning/note-on.ts` | Note Onエフェクト4種の調整 |
-| `src/stage/effect-tuning/math.ts` | 値域制限、非有限値対策、補間とEasing |
-| `src/stage/effects.ts` | 4種の発音エフェクトを接続するFacade |
-| `src/stage/note-impact/` | 4種の発音エフェクト生成、Active Effectクラス、Queue |
-| `src/stage/long-note-dissolve.ts` | ロングトーン粒子Burstの生成、拡散、上限管理 |
-| `src/stage/level-meters.ts` | Trackレベルメータの状態、減衰、InstancedMesh描画 |
-| `src/stage/palette.ts` | ノート、エフェクト、メータで共有するTrack色 |
+| `src/stage/core/stage-layout.ts` | Track、Pitch、World座標の変換と寸法 |
+| `src/stage/core/midi-time-map.ts` | 秒とMIDI Tickの相互変換 |
+| `src/stage/scene/stage-environment.ts` | 背景、Fog、Lightの状態とLifecycle |
+| `src/stage/scene/guide-frame.ts` | 小節枠、拍枠、発音平面の具象クラス |
+| `src/stage/scene/timeline-guide-layer.ts` | Timeline GuideのCollectionと時間移動 |
+| `src/stage/notes/rendered-note.ts` | 1ノート分の表示状態、更新、Resource |
+| `src/stage/notes/note-layer.ts` | Rendered Note Collectionとロングトーン粒子化 |
+| `src/stage/notes/note-on-reaction-controller.ts` | Note On走査、発音エフェクト、レベルメータ |
+| `src/stage/scene/orbit-camera-controller.ts` | 球面オービットカメラの状態と操作 |
+| `src/stage/core/distance-visibility.ts` | ノートとレベルメータで共有するFog軽減Shader処理 |
+| `src/stage/effects/tuning/note.ts` | 通常ノート、発音中、Note Off残光の表示調整 |
+| `src/stage/effects/tuning/long-note.ts` | ロングトーンFade、粒子、粒子化前発光の調整 |
+| `src/stage/effects/tuning/note-on.ts` | Note Onエフェクト4種の調整 |
+| `src/stage/effects/tuning/math.ts` | 値域制限、非有限値対策、補間とEasing |
+| `src/stage/effects/note-impact-effects.ts` | 4種の発音エフェクトを接続するFacade |
+| `src/stage/effects/note-impact/` | 4種の発音エフェクト生成、Active Effectクラス、Queue |
+| `src/stage/effects/long-note-dissolve.ts` | ロングトーン粒子Burstの生成、拡散、上限管理 |
+| `src/stage/effects/level-meters.ts` | Trackレベルメータの状態、減衰、InstancedMesh描画 |
+| `src/stage/core/palette.ts` | ノート、エフェクト、メータで共有するTrack色 |
 | `src/stage/main.ts` | 映像ページの初期化、入力、再生、表示更新 |
 | `src/control/main.ts` | 設定UIの生成、保存、通知 |
 | `src/styles/stage.css` | 映像ページとBPM・拍数表示 |

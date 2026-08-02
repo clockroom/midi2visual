@@ -1,13 +1,13 @@
 import * as THREE from 'three'
-import type { MidiModel } from '../shared/types'
-import { LongNoteDissolveEffects } from './long-note-dissolve'
-import type { MidiTimeMap } from './midi-time-map'
+import type { MidiModel } from '../../shared/types'
+import type { MidiTimeMap } from '../core/midi-time-map'
+import type { StageLayout } from '../core/stage-layout'
+import { LongNoteDissolveEffects } from '../effects/long-note-dissolve'
 import { RenderedNote, type NoteUpdateFrame } from './rendered-note'
 import {
 	type StageContext,
 	type StageSettingsChange,
-} from './stage-context'
-import type { StageLayout } from './stage-layout'
+} from '../stage-context'
 
 export class NoteLayer {
 	readonly group = new THREE.Group()

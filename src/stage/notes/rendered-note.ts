@@ -1,9 +1,12 @@
 import * as THREE from 'three'
-import type { AppSettings, VisualNote } from '../shared/types'
+import type { AppSettings, VisualNote } from '../../shared/types'
 import {
 	applyDistanceVisibility,
 	type DistanceVisibilityUniform,
-} from './distance-visibility'
+} from '../core/distance-visibility'
+import type { MidiTimeMap } from '../core/midi-time-map'
+import { TRACK_PALETTE } from '../core/palette'
+import type { StageLayout } from '../core/stage-layout'
 import {
 	calculateLongFadeNoteAppearance,
 	calculateLongNoteParticleCount,
@@ -11,17 +14,14 @@ import {
 	calculateLongNotePreFlashProgress,
 	clampLongNoteDissolveRangeRatio,
 	clampLongNoteDissolveTriggerRatio,
-} from './effect-tuning/long-note'
+} from '../effects/tuning/long-note'
 import {
 	calculateNoteAppearance,
 	type NoteAppearance,
 	type NoteAppearanceMode,
-} from './effect-tuning/note'
-import type { LongNoteDissolveEffects } from './long-note-dissolve'
-import type { MidiTimeMap } from './midi-time-map'
-import { TRACK_PALETTE } from './palette'
-import type { StageContext } from './stage-context'
-import type { StageLayout } from './stage-layout'
+} from '../effects/tuning/note'
+import type { LongNoteDissolveEffects } from '../effects/long-note-dissolve'
+import type { StageContext } from '../stage-context'
 
 export interface NoteUpdateFrame {
 	songSeconds: number

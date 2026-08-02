@@ -1,7 +1,7 @@
 import {
 	calculateCustomNoteImpactFrame,
 	type EffectFrame,
-} from '../effect-tuning/note-on'
+} from '../tuning/note-on'
 import { ActiveNoteImpactEffect } from './active-effect'
 
 export class ActiveCustomImageEffect extends ActiveNoteImpactEffect {

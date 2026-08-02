@@ -2,15 +2,15 @@ import * as THREE from 'three'
 import {
 	normalizePublicFileName,
 	toPublicFileUrl,
-} from '../../shared/public-files'
+} from '../../../shared/public-files'
 import {
 	calculateCustomEffectAppearance,
 	getCustomEffectPositionTolerance,
-} from '../effect-tuning/note-on'
+} from '../tuning/note-on'
 import {
 	type StageContext,
 	type StageSettingsChange,
-} from '../stage-context'
+} from '../../stage-context'
 import { ActiveCustomImageEffect } from './active-custom-image'
 import type { ActiveNoteImpactEffectQueue } from './active-effect-queue'
 import { createEffectPlaneMaterial } from './materials'

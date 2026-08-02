@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { calculateCoreFlashAppearance } from '../effect-tuning/note-on'
+import { calculateCoreFlashAppearance } from '../tuning/note-on'
 import { ActiveCoreFlashEffect } from './active-core-flash'
 import type { ActiveNoteImpactEffectQueue } from './active-effect-queue'
 import { createEffectSpriteMaterial } from './materials'

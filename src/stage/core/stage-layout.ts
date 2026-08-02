@@ -1,4 +1,4 @@
-import type { AppSettings, MidiModel } from '../shared/types'
+import type { AppSettings, MidiModel } from '../../shared/types'
 
 const PITCH_PADDING = 3
 const PITCH_STEP = 0.34

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { AppSettings } from '../shared/types'
+import type { AppSettings } from '../../shared/types'
 
 const FOG_DENSITY = 0.018
 

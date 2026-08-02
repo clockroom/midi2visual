@@ -3,8 +3,8 @@ import {
 	calculateCommonNoteImpactFrame,
 	type EffectFrame,
 	type NoteImpactKind,
-} from '../effect-tuning/note-on'
-import { clampNonNegative } from '../effect-tuning/math'
+} from '../tuning/note-on'
+import { clampNonNegative } from '../tuning/math'
 
 export type ActiveEffectUpdateResult = 'active' | 'complete'
 export type NoteImpactEffectMaterial =

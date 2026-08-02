@@ -1,7 +1,7 @@
 import {
 	calculateSparkTravel,
 	type EffectFrame,
-} from '../effect-tuning/note-on'
+} from '../tuning/note-on'
 import {
 	ActiveNoteImpactEffect,
 	type ActiveNoteImpactEffectInit,

@@ -1,5 +1,6 @@
 import * as THREE from 'three'
-import type { MidiModel } from '../shared/types'
+import type { MidiModel } from '../../shared/types'
+import type { StageLayout } from '../core/stage-layout'
 import {
 	BeatGuideFrame,
 	type GuideFrame,
@@ -9,8 +10,7 @@ import {
 import {
 	type StageContext,
 	type StageSettingsChange,
-} from './stage-context'
-import type { StageLayout } from './stage-layout'
+} from '../stage-context'
 
 export class TimelineGuideLayer {
 	readonly group = new THREE.Group()

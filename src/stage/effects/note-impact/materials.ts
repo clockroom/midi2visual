@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { clampOpacity } from '../effect-tuning/math'
+import { clampOpacity } from '../tuning/math'
 
 export function createEffectSpriteMaterial(
 	texture: THREE.Texture,

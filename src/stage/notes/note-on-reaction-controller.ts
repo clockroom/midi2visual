@@ -1,10 +1,10 @@
 import * as THREE from 'three'
-import type { MidiModel, VisualNote } from '../shared/types'
-import { NoteImpactEffects } from './effects'
-import { TrackLevelMeters } from './level-meters'
-import { TRACK_PALETTE } from './palette'
-import type { StageContext } from './stage-context'
-import type { StageLayout } from './stage-layout'
+import type { MidiModel, VisualNote } from '../../shared/types'
+import { TRACK_PALETTE } from '../core/palette'
+import type { StageLayout } from '../core/stage-layout'
+import { TrackLevelMeters } from '../effects/level-meters'
+import { NoteImpactEffects } from '../effects/note-impact-effects'
+import type { StageContext } from '../stage-context'
 
 export class NoteOnReactionController {
 	readonly group = new THREE.Group()

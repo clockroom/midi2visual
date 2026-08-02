@@ -3,7 +3,7 @@ import {
 	getNoteImpactActiveEffectLimit,
 	getNoteImpactMaxDeltaSeconds,
 	type NoteImpactKind,
-} from '../effect-tuning/note-on'
+} from '../tuning/note-on'
 import type { ActiveNoteImpactEffect } from './active-effect'
 
 export class ActiveNoteImpactEffectQueue {

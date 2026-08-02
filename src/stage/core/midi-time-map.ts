@@ -1,4 +1,4 @@
-import type { MidiModel, TempoMarker } from '../shared/types'
+import type { MidiModel, TempoMarker } from '../../shared/types'
 
 export class MidiTimeMap {
 	private readonly ppq: number

@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import type { StageLayout } from './stage-layout'
+import type { StageLayout } from '../core/stage-layout'
 
 interface GuideFrameStyle {
 	color: number

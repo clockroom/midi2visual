@@ -2,12 +2,12 @@ import * as THREE from 'three'
 import {
 	applyDistanceVisibility,
 	type DistanceVisibilityUniform,
-} from './distance-visibility'
-import { TRACK_PALETTE } from './palette'
+} from '../core/distance-visibility'
+import { TRACK_PALETTE } from '../core/palette'
 import {
 	type StageContext,
 	type StageSettingsChange,
-} from './stage-context'
+} from '../stage-context'
 
 export interface LevelMeterTriggerRequest {
 	trackIndex: number

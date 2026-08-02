@@ -1,6 +1,6 @@
 import * as THREE from 'three'
-import type { StageContext } from './stage-context'
-import type { StageLayout } from './stage-layout'
+import type { StageLayout } from '../core/stage-layout'
+import type { StageContext } from '../stage-context'
 
 const HORIZONTAL_LIMIT = THREE.MathUtils.degToRad(60)
 const MIN_VERTICAL_ANGLE = THREE.MathUtils.degToRad(-45)

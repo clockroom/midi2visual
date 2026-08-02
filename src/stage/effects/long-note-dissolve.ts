@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { clampOpacity } from './effect-tuning/math'
+import { clampOpacity } from './tuning/math'
 import {
 	calculateLongNoteParticleFrame,
 	clampLongNoteParticleSize,
@@ -9,11 +9,11 @@ import {
 	getLongNoteInitialOpacity,
 	getLongNoteMinimumDurationSeconds,
 	getLongNoteRenderOrder,
-} from './effect-tuning/long-note'
+} from './tuning/long-note'
 import {
 	type StageContext,
 	type StageSettingsChange,
-} from './stage-context'
+} from '../stage-context'
 
 interface DissolveBurst {
 	points: THREE.Points<THREE.BufferGeometry, THREE.PointsMaterial>

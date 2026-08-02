@@ -8,7 +8,7 @@ import type { NoteImpactSpawnRequest } from './note-impact/types'
 import {
 	type StageContext,
 	type StageSettingsChange,
-} from './stage-context'
+} from '../stage-context'
 
 export type NoteImpactTriggerRequest = NoteImpactSpawnRequest
 

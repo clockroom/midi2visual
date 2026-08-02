@@ -1,16 +1,16 @@
 import * as THREE from 'three'
 import type { MidiModel } from '../shared/types'
-import { MidiTimeMap } from './midi-time-map'
-import { NoteLayer } from './note-layer'
-import { NoteOnReactionController } from './note-on-reaction-controller'
-import { OrbitCameraController } from './orbit-camera-controller'
+import { MidiTimeMap } from './core/midi-time-map'
+import { StageLayout } from './core/stage-layout'
+import { NoteLayer } from './notes/note-layer'
+import { NoteOnReactionController } from './notes/note-on-reaction-controller'
+import { OrbitCameraController } from './scene/orbit-camera-controller'
 import {
 	type StageContext,
 	type StageSettingsChange,
 } from './stage-context'
-import { StageEnvironment } from './stage-environment'
-import { StageLayout } from './stage-layout'
-import { TimelineGuideLayer } from './timeline-guide-layer'
+import { StageEnvironment } from './scene/stage-environment'
+import { TimelineGuideLayer } from './scene/timeline-guide-layer'
 
 export class MidiVisualizer {
 	private readonly scene = new THREE.Scene()

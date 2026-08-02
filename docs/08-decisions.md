@@ -79,7 +79,7 @@ UnityやPython GUIではなくWebアプリとして実装する。
 
 ### 判断
 
-通常ノート表示、ロングトーン、Note Onエフェクト4種の調整値、Velocity補正、時間変化の計算式を`stage/effect-tuning`内の`note.ts`、`long-note.ts`、`note-on.ts`へ分割する。共通の値域制限は`math.ts`へ置く。バレルモジュールは作らず、各描画実装から対象カテゴリーを直接Importする。Three.js Object、Material、Textureの生成と破棄は各描画クラスへ残す。
+通常ノート表示、ロングトーン、Note Onエフェクト4種の調整値、Velocity補正、時間変化の計算式を`stage/effects/tuning`内の`note.ts`、`long-note.ts`、`note-on.ts`へ分割する。共通の値域制限は`math.ts`へ置く。バレルモジュールは作らず、各描画実装から対象カテゴリーを直接Importする。Three.js Object、Material、Textureの生成と破棄は各描画クラスへ残す。
 
 ### 理由
 
@@ -87,7 +87,7 @@ Opacity、Scale、速度、Fade Curveなどが描画クラスへ直接埋め込�
 
 ### 影響
 
-曲ごとに変更する値は従来どおり`AppSettings`と設定画面で管理します。`effect-tuning`内の値は開発時の演出調整用とし、`localStorage`へ保存しません。Opacity、Blend率、Progressは最終結果を`0〜1`へ制限し、Duration、Size、Particle数、非有限値にも安全策を適用します。ScaleとSpeedには任意の上限を設けません。正常範囲の既存係数とRandom値の取得順は維持し、見た目を変更しません。
+曲ごとに変更する値は従来どおり`AppSettings`と設定画面で管理します。`effects/tuning`内の値は開発時の演出調整用とし、`localStorage`へ保存しません。Opacity、Blend率、Progressは最終結果を`0〜1`へ制限し、Duration、Size、Particle数、非有限値にも安全策を適用します。ScaleとSpeedには任意の上限を設けません。正常範囲の既存係数とRandom値の取得順は維持し、見た目を変更しません。
 
 ## `public`直下のファイル名を設定する
 
@@ -381,6 +381,20 @@ ContextはグローバルSingletonにせず、各エフェクトのTrigger Reque
 
 ファイルは原則500行以下、メソッドは原則100行以下とします。ただし、行数のためだけに意味のない委譲を増やさず、状態とLifecycleのまとまりを優先します。
 
+## Stageの実装を役割別Directoryへ整理する
+
+### 判断
+
+`stage/main.ts`が直接参照する`stage-context.ts`、`timeline.ts`、`visualizer.ts`はRootに維持する。それ以外は、座標と共通基盤を`core/`、Scene構成要素を`scene/`、ノート表示を`notes/`、発音・ロングトーン・レベルメータを`effects/`へ配置する。演出調整値は`effects/tuning/`、Note Onエフェクトの生成とActive Objectは`effects/note-impact/`へ配置する。
+
+### 理由
+
+Visualizer分割後も全ファイルを`stage/`直下へ置くと、責務の境界と依存方向がDirectory一覧から読み取れません。一方、1〜2ファイルだけのDirectoryを作るとPathが深くなる割に分類の利点が小さいため、3ファイル以上のまとまりだけをDirectory化します。
+
+### 影響
+
+依存方向はRootから各カテゴリー、`scene/`から`core/`、`notes/`から`core/`と`effects/`、`effects/`から`core/`と配下Moduleへ向けます。バレルモジュールは設けず、使用する実装を直接Importします。Repository Rootの確認用画像は`.gitignore`の`/notes/`でRootだけを管理対象外にします。
+
 ## 演出用VelocityをStageContextで変換する
 
 ### 判断
@@ -399,13 +413,13 @@ ContextはグローバルSingletonにせず、各エフェクトのTrigger Reque
 
 ### 判断
 
-`stage/effects.ts`をFacadeとし、コアフラッシュ、拡散リング、スパーク、カスタム画像の生成処理を`stage/note-impact`配下の4モジュールへ分離する。生成後の状態と更新処理は各Active Effectが所有し、Queueは追加、反復更新、Clear、上限制御、Groupからの除去を担当する。
+`stage/effects/note-impact-effects.ts`をFacadeとし、コアフラッシュ、拡散リング、スパーク、カスタム画像の生成処理を`stage/effects/note-impact`配下の4モジュールへ分離する。生成後の状態と更新処理は各Active Effectが所有し、Queueは追加、反復更新、Clear、上限制御、Groupからの除去を担当する。
 
 ### 理由
 
 4種類のTexture読込、Object生成、固有処理を1ファイルへ置くと、エフェクト追加時に500行を超え、変更対象を追いにくくなります。一方、共通Lifecycleを具象クラスへ重複実装する必要はありません。抽象基底クラスのTemplate MethodとQueueを分けることで、共通Lifecycle、固有表現、Collection管理をそれぞれ局所化します。
 
-調整値とAppearance計算は従来どおり`effect-tuning/note-on.ts`へ集約し、Resource生成から分離します。ファイル名の正規化実装は`shared/public-files.ts`が所有し、カスタム画像モジュールは読み込み境界で共通Utilityを利用するだけとします。
+調整値とAppearance計算は従来どおり`effects/tuning/note-on.ts`へ集約し、Resource生成から分離します。ファイル名の正規化実装は`shared/public-files.ts`が所有し、カスタム画像モジュールは読み込み境界で共通Utilityを利用するだけとします。
 
 ## 拡散リングを二重波紋として表示する
 
