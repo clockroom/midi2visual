@@ -361,6 +361,26 @@ X軸の意味をTrackへ限定し、MVPの構造を単純に保つためです�
 
 ContextはグローバルSingletonにせず、各エフェクトのTrigger Requestを生成しません。Triggerは機能ごとの専用Request型を持ち、呼び出し側が必要な値だけをObject Literalで組み立てます。
 
+## Visualizerを状態とLifecycleを持つ描画オブジェクトへ分割する
+
+### 判断
+
+`MidiVisualizer`はRenderer、Scene、各描画オブジェクトの組み立てと更新順序だけを担当するComposition Rootとする。ノート、ガイド、背景、Note On走査、カメラ、座標、Tempo Mapは、それぞれ専用クラスへ分離する。
+
+1ノート分のMesh、表示状態、ロングトーン制御は`RenderedNote`が所有し、`NoteLayer`はそのCollectionを更新する。小節枠、拍枠、発音平面は具象`GuideFrame`として表現し、`TimelineGuideLayer`がCollectionと時間移動を管理する。
+
+### 理由
+
+描画処理を`MidiVisualizer`のprivateメソッドへ集約すると、Scene全体の調停と個々のObjectの状態更新が同じクラスへ混在します。特に全ノートを走査する長大なLoopは、ノート固有の状態と制御を外部から解釈する構造になっていました。
+
+各Objectが自分の状態、更新、Resource破棄を所有すれば、機能追加時の変更範囲が担当クラスへ限定されます。継承だけに近い小節枠、拍枠、発音平面の具象クラスも、Domain上の種類を明示し、将来の種類別挙動を局所化する役割を持ちます。
+
+### 影響
+
+`MidiVisualizer.render()`はNote Layer、Timeline Guide、Note On Reactionの順に更新してRendererを呼び出します。設定変更時は最新`StageLayout`を生成し、再構築要否の判断を各所有クラスへ委譲します。
+
+ファイルは原則500行以下、メソッドは原則100行以下とします。ただし、行数のためだけに意味のない委譲を増やさず、状態とLifecycleのまとまりを優先します。
+
 ## 演出用VelocityをStageContextで変換する
 
 ### 判断

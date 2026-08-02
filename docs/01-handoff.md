@@ -55,7 +55,16 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/shared/channel.ts` | `BroadcastChannel`の薄いラッパー |
 | `src/stage/timeline.ts` | 実時間基準の再生時刻管理 |
 | `src/stage/stage-context.ts` | Stage内の最新設定と変更通知を共有するContext |
-| `src/stage/visualizer.ts` | Three.jsシーン、ノート、枠、背景、カメラ |
+| `src/stage/visualizer.ts` | Stage描画オブジェクトを接続するComposition Root |
+| `src/stage/stage-layout.ts` | Track、Pitch、World座標の変換と寸法 |
+| `src/stage/midi-time-map.ts` | 秒とMIDI Tickの相互変換 |
+| `src/stage/stage-environment.ts` | 背景、Fog、Lightの状態とLifecycle |
+| `src/stage/guide-frame.ts` | 小節枠、拍枠、発音平面の具象クラス |
+| `src/stage/timeline-guide-layer.ts` | Timeline GuideのCollectionと時間移動 |
+| `src/stage/rendered-note.ts` | 1ノート分の表示状態、更新、Resource |
+| `src/stage/note-layer.ts` | Rendered Note Collectionとロングトーン粒子化 |
+| `src/stage/note-on-reaction-controller.ts` | Note On走査、発音エフェクト、レベルメータ |
+| `src/stage/orbit-camera-controller.ts` | 球面オービットカメラの状態と操作 |
 | `src/stage/distance-visibility.ts` | ノートとレベルメータで共有するFog軽減Shader処理 |
 | `src/stage/effect-tuning/note.ts` | 通常ノート、発音中、Note Off残光の表示調整 |
 | `src/stage/effect-tuning/long-note.ts` | ロングトーンFade、粒子、粒子化前発光の調整 |

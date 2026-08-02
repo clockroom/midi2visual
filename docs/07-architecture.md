@@ -51,9 +51,12 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	│	├─ note-on.ts
 │	│	│	└─ note.ts
 │	│	├─ effects.ts
+│	│	├─ guide-frame.ts
 │	│	├─ level-meters.ts
 │	│	├─ long-note-dissolve.ts
 │	│	├─ main.ts
+│	│	├─ midi-time-map.ts
+│	│	├─ note-layer.ts
 │	│	├─ note-impact/
 │	│	│	├─ active-core-flash.ts
 │	│	│	├─ active-custom-image.ts
@@ -68,9 +71,15 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	│	├─ sparks.ts
 │	│	│	├─ texture.ts
 │	│	│	└─ types.ts
+│	│	├─ note-on-reaction-controller.ts
+│	│	├─ orbit-camera-controller.ts
 │	│	├─ palette.ts
+│	│	├─ rendered-note.ts
 │	│	├─ stage-context.ts
+│	│	├─ stage-environment.ts
+│	│	├─ stage-layout.ts
 │	│	├─ timeline.ts
+│	│	├─ timeline-guide-layer.ts
 │	│	└─ visualizer.ts
 │	└─ styles/
 │		├─ control.css
@@ -143,14 +152,66 @@ Three.jsへ依存しません。
 
 ### `stage/visualizer.ts`
 
-- Renderer、Scene、Camera
-- Note MeshとGlow
-- 小節枠、拍枠、発音平面
-- 背景、Fog、Light
-- 設定変更時の再構築
-- 球面オービットカメラ
+- RendererとScene
+- Stage描画オブジェクトの生成とSceneへの接続
+- MIDI Loadと設定変更の各オブジェクトへの委譲
+- Note、Guide、Reactionの更新順序
 - ウィンドウリサイズ
-- Three.js ResourceのDispose
+- 各オブジェクトのDispose呼び出し
+
+具体的な表示処理は持たず、Composition Root兼Orchestratorとして機能します。
+
+### `stage/stage-layout.ts`
+
+- Track数、Pitch範囲、設定からWorld寸法と中心座標を算出
+- Track IndexからX座標への変換
+- MIDI PitchからY座標への変換
+
+### `stage/midi-time-map.ts`
+
+- Tempo MarkerとPPQの保持
+- 秒からTick、Tickから秒への二分探索による相互変換
+- Three.js非依存の時間Domain Service
+
+### `stage/stage-environment.ts`
+
+- 背景Gradient Texture、Fog、Ambient Light、Key Lightの所有
+- 背景設定変更時のTexture差し替え
+- TextureとScene ResourceのLifecycle管理
+
+### `stage/guide-frame.ts` / `timeline-guide-layer.ts`
+
+- 小節枠、拍枠、発音平面を表す具象`GuideFrame`クラス
+- Timeline上を移動する枠と固定発音平面のGroup管理
+- 設定変更時の再構築
+- GeometryとMaterialのDispose
+
+### `stage/rendered-note.ts`
+
+- 1ノート分のMesh、Glow、Material、Uniformの所有
+- 通常、発音中、残光、ロングトーンFadeの表示状態更新
+- ロングトーン粒子化判定と粒子位置生成
+- 1ノート分のThree.js ResourceのDispose
+
+### `stage/note-layer.ts`
+
+- `RenderedNote` Collectionと移動Groupの管理
+- 全ノートのFrame更新
+- 再生巻き戻りと設定変更による粒子化状態Reset
+- `LongNoteDissolveEffects`の所有と更新
+
+### `stage/note-on-reaction-controller.ts`
+
+- Note On走査位置と前回再生時刻の保持
+- Note On通過時の発音エフェクトとレベルメータのTrigger
+- 巻き戻り時のCursor、エフェクト、メータReset
+- `NoteImpactEffects`と`TrackLevelMeters`の所有
+
+### `stage/orbit-camera-controller.ts`
+
+- Perspective Cameraと球面Orbit状態の所有
+- World寸法に合わせた初期位置とClip範囲の計算
+- キーボード操作、Reset、Resize、Projection更新
 
 ### `stage/distance-visibility.ts`
 
