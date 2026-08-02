@@ -93,7 +93,6 @@ export interface EffectFrame {
 	complete: boolean
 	scale: number
 	opacity: number
-	travel: number
 }
 
 export interface CustomEffectInput {
@@ -277,13 +276,69 @@ export function calculateCustomEffectAppearance(
 	}
 }
 
-export function calculateNoteImpactFrame(
-	kind: NoteImpactKind,
+export function calculateCommonNoteImpactFrame(
 	age: number,
 	duration: number,
 	startScale: number,
 	endScale: number,
 	baseOpacity: number,
+): EffectFrame {
+	return calculateNoteImpactFrame(
+		age,
+		duration,
+		startScale,
+		endScale,
+		baseOpacity,
+		0,
+	)
+}
+
+export function calculateCustomNoteImpactFrame(
+	age: number,
+	duration: number,
+	startScale: number,
+	endScale: number,
+	baseOpacity: number,
+): EffectFrame {
+	return calculateNoteImpactFrame(
+		age,
+		duration,
+		startScale,
+		endScale,
+		baseOpacity,
+		clamp(
+			NOTE_ON_TUNING.custom.fadeStartProgress,
+			0,
+			1 - MIN_POSITIVE_VALUE,
+			0.15,
+		),
+	)
+}
+
+export function calculateSparkTravel(
+	age: number,
+	duration: number,
+): number {
+	const safeDuration = clampPositive(duration)
+	const safeAge = clampNonNegative(age, safeDuration)
+	const progress = clampUnit(safeAge / safeDuration)
+
+	return finiteOr(
+		safeAge *
+			(1 -
+				progress *
+					clampUnit(NOTE_ON_TUNING.sparks.travelSlowdown)),
+		0,
+	)
+}
+
+function calculateNoteImpactFrame(
+	age: number,
+	duration: number,
+	startScale: number,
+	endScale: number,
+	baseOpacity: number,
+	fadeStartProgress: number,
 ): EffectFrame {
 	const safeDuration = clampPositive(duration)
 	const safeAge = clampNonNegative(age, safeDuration)
@@ -293,27 +348,14 @@ export function calculateNoteImpactFrame(
 		NOTE_ON_TUNING.common.scaleEasePower,
 	)
 	const fadeStart = clamp(
-		NOTE_ON_TUNING.custom.fadeStartProgress,
+		fadeStartProgress,
 		0,
 		1 - MIN_POSITIVE_VALUE,
-		0.15,
+		0,
 	)
-	const opacityProgress =
-		kind === 'custom'
-			? clampUnit((progress - fadeStart) / (1 - fadeStart))
-			: progress
-	const travel =
-		kind === 'spark'
-			? finiteOr(
-					safeAge *
-						(1 -
-							progress *
-								clampUnit(
-									NOTE_ON_TUNING.sparks.travelSlowdown,
-								)),
-					0,
-				)
-			: 0
+	const opacityProgress = clampUnit(
+		(progress - fadeStart) / (1 - fadeStart),
+	)
 
 	return {
 		complete: progress >= 1,
@@ -323,6 +365,5 @@ export function calculateNoteImpactFrame(
 		opacity: clampOpacity(
 			clampOpacity(baseOpacity) * (1 - opacityProgress),
 		),
-		travel,
 	}
 }

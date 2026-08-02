@@ -128,19 +128,23 @@ MIDIとカスタム画像はユーザーが`public`直下へ置き、設定画�
 - 各エフェクトを個別にON/OFFできる。
 - カスタム画像のTexture再読み込みやAnimationをノートMeshの寿命から分離できる。
 
-## 発音エフェクト固有のフレーム更新はコールバックで注入する
+## Active Effectは状態と更新処理を持つクラスにする
 
 ### 判断
 
-共通Active Effect Runtimeは遅延、Scale、Opacity、寿命、破棄を管理し、スパーク固有の位置更新は`SparkEffects`が登録したフレーム更新コールバックで実行する。
+`ActiveNoteImpactEffect`を抽象基底クラスとし、コアフラッシュ、拡散リング、スパーク、カスタム画像を具象Active Effectとして表現する。共通の遅延、Scale、Opacity、寿命管理はTemplate Methodとして基底クラスへ実装し、スパークの移動とカスタム画像のFade Curveは具象クラスがオーバーライドする。
 
 ### 理由
 
-共通Runtimeで`kind`を判定して個別挙動を実装すると、エフェクト追加のたびに共通処理へ分岐が増えます。一方、現状は独自のフレーム更新を持つ種類がスパークだけなので、抽象クラス階層を導入するよりコールバックによる合成の方が小さく責務を分離できます。
+状態だけを持つObjectを共通Runtimeが解釈すると、Queue処理とエフェクト処理が同じクラスへ集まり、固有挙動を追加するたびに種類判定やコールバックが必要になります。表示中のエフェクト自身が状態、更新、完了判定、Material破棄を所有すれば、Queueは追加、反復、検索、除去だけを担当できます。
+
+共通処理だけを使う具象クラスにもDomain上の名前を与えることで、生成側から何を追加しているか明確になり、その種類だけの挙動が増えた場合も局所的に拡張できます。
 
 ### 影響
 
-`kind`は種類別Clearなどのライフサイクル管理にだけ使用します。スパークの速度と位置計算は`SparkEffects`内に閉じ、他のエフェクトは不要な速度値を共通Requestへ渡しません。複数のエフェクトで大規模な独自更新が必要になった場合は、その時点で更新Strategyやクラス階層を再検討します。
+`ActiveNoteImpactEffectQueue`は`ActiveNoteImpactEffect[]`を保持し、各要素の`update()`結果が完了なら除去します。`kind`は種類別Clearにだけ使用し、更新処理では分岐しません。共通Requestとフレーム更新コールバックは使用しません。
+
+Frame計算は共通、カスタム画像、スパーク移動距離の純粋関数へ分割し、具象Active Effectが必要な関数を選択します。TextureとGeometryを保持してNote OnからActive Effectを生成する既存4クラスは、Emitter相当の責務として維持します。
 
 ## Trackレベルメータをセグメント式にする
 
@@ -371,15 +375,15 @@ ContextはグローバルSingletonにせず、各エフェクトのTrigger Reque
 
 初期値`100% / 50% / 50%`は無変換です。強調を下げると弱いNote Onを持ち上げ、上げると最大出力を`2`まで拡大します。強調特性はMiddleの出力値、強調閾値はMiddleになる入力値を調整します。Opacityは従来どおり`0〜1`へ制限し、スパーク数にも既存の安全上限を適用します。
 
-## Note Onエフェクトを生成処理と共通Runtimeへ分離する
+## Note Onエフェクトを生成処理、Active Object、Queueへ分離する
 
 ### 判断
 
-`stage/effects.ts`をFacadeとし、コアフラッシュ、拡散リング、スパーク、カスタム画像の生成処理を`stage/note-impact`配下の4モジュールへ分離する。生成後の遅延、時間更新、Clear、上限制御、Material Disposeは`active-effects.ts`で共有する。
+`stage/effects.ts`をFacadeとし、コアフラッシュ、拡散リング、スパーク、カスタム画像の生成処理を`stage/note-impact`配下の4モジュールへ分離する。生成後の状態と更新処理は各Active Effectが所有し、Queueは追加、反復更新、Clear、上限制御、Groupからの除去を担当する。
 
 ### 理由
 
-4種類のTexture読込、Object生成、固有処理を1ファイルへ置くと、エフェクト追加時に500行を超え、変更対象を追いにくくなります。一方、時間更新と破棄まで4重化すると同じLifecycle処理が重複します。生成責務だけを分け、共通Runtimeを注入することで、各表現と共通Lifecycleの両方を局所化します。
+4種類のTexture読込、Object生成、固有処理を1ファイルへ置くと、エフェクト追加時に500行を超え、変更対象を追いにくくなります。一方、共通Lifecycleを具象クラスへ重複実装する必要はありません。抽象基底クラスのTemplate MethodとQueueを分けることで、共通Lifecycle、固有表現、Collection管理をそれぞれ局所化します。
 
 調整値とAppearance計算は従来どおり`effect-tuning/note-on.ts`へ集約し、Resource生成から分離します。ファイル名の正規化実装は`shared/public-files.ts`が所有し、カスタム画像モジュールは読み込み境界で共通Utilityを利用するだけとします。
 
@@ -391,7 +395,7 @@ ContextはグローバルSingletonにせず、各エフェクトのTrigger Reque
 
 ### 理由
 
-水面へ水滴を落としたときのように、最初の波紋を少し遅れて大きな波紋が追う表現を加えるためです。遅延はTimerではなく共通Runtimeの曲時刻で処理し、停止、先頭再生、Active Effect破棄と同期させます。
+水面へ水滴を落としたときのように、最初の波紋を少し遅れて大きな波紋が追う表現を加えるためです。遅延はTimerではなくActive Effect自身の経過時間で処理し、停止、先頭再生、Active Effect破棄と同期させます。
 
 ## 球面オービットカメラ
 

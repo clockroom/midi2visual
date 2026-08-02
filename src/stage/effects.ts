@@ -1,5 +1,5 @@
 import * as THREE from 'three'
-import { ActiveNoteImpactEffects } from './note-impact/active-effects'
+import { ActiveNoteImpactEffectQueue } from './note-impact/active-effect-queue'
 import { CoreFlashEffect } from './note-impact/core-flash'
 import { CustomImageEffect } from './note-impact/custom-image'
 import { ImpactRingEffect } from './note-impact/impact-ring'
@@ -13,7 +13,7 @@ import {
 export type NoteImpactTriggerRequest = NoteImpactSpawnRequest
 
 export class NoteImpactEffects {
-	private readonly activeEffects: ActiveNoteImpactEffects
+	private readonly effectQueue: ActiveNoteImpactEffectQueue
 	private readonly coreFlash: CoreFlashEffect
 	private readonly impactRing: ImpactRingEffect
 	private readonly sparks: SparkEffects
@@ -24,12 +24,12 @@ export class NoteImpactEffects {
 		group: THREE.Group,
 		private readonly context: StageContext,
 	) {
-		this.activeEffects = new ActiveNoteImpactEffects(group)
-		this.coreFlash = new CoreFlashEffect(this.activeEffects)
-		this.impactRing = new ImpactRingEffect(this.activeEffects)
-		this.sparks = new SparkEffects(this.activeEffects)
+		this.effectQueue = new ActiveNoteImpactEffectQueue(group)
+		this.coreFlash = new CoreFlashEffect(this.effectQueue)
+		this.impactRing = new ImpactRingEffect(this.effectQueue)
+		this.sparks = new SparkEffects(this.effectQueue)
 		this.customImage = new CustomImageEffect(
-			this.activeEffects,
+			this.effectQueue,
 			context,
 		)
 		this.unsubscribeSettings = context.subscribe((change) => {
@@ -62,16 +62,16 @@ export class NoteImpactEffects {
 	}
 
 	update(deltaSeconds: number): void {
-		this.activeEffects.update(deltaSeconds)
+		this.effectQueue.update(deltaSeconds)
 	}
 
 	clear(): void {
-		this.activeEffects.clear()
+		this.effectQueue.clear()
 	}
 
 	dispose(): void {
 		this.unsubscribeSettings()
-		this.activeEffects.clear()
+		this.effectQueue.clear()
 		this.coreFlash.dispose()
 		this.impactRing.dispose()
 		this.sparks.dispose()
@@ -83,19 +83,19 @@ export class NoteImpactEffects {
 		current,
 	}: StageSettingsChange): void {
 		if (previous.showCoreFlash && !current.showCoreFlash) {
-			this.activeEffects.clearKind('flash')
+			this.effectQueue.clearKind('flash')
 		}
 
 		if (previous.showImpactRing && !current.showImpactRing) {
-			this.activeEffects.clearKind('ring')
+			this.effectQueue.clearKind('ring')
 		}
 
 		if (previous.showSparks && !current.showSparks) {
-			this.activeEffects.clearKind('spark')
+			this.effectQueue.clearKind('spark')
 		}
 
 		if (previous.showCustomImpactImage && !current.showCustomImpactImage) {
-			this.activeEffects.clearKind('custom')
+			this.effectQueue.clearKind('custom')
 		}
 	}
 }

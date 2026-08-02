@@ -11,7 +11,8 @@ import {
 	type StageContext,
 	type StageSettingsChange,
 } from '../stage-context'
-import type { ActiveNoteImpactEffects } from './active-effects'
+import { ActiveCustomImageEffect } from './active-custom-image'
+import type { ActiveNoteImpactEffectQueue } from './active-effect-queue'
 import { createEffectPlaneMaterial } from './materials'
 import { loadEffectTexture } from './texture'
 import type { NoteImpactSpawnRequest } from './types'
@@ -27,7 +28,7 @@ export class CustomImageEffect {
 	private readonly unsubscribeSettings: () => void
 
 	constructor(
-		private readonly activeEffects: ActiveNoteImpactEffects,
+		private readonly effectQueue: ActiveNoteImpactEffectQueue,
 		private readonly context: StageContext,
 	) {
 		this.unsubscribeSettings = context.subscribe((change) => {
@@ -41,7 +42,7 @@ export class CustomImageEffect {
 			return
 		}
 
-		this.activeEffects.clearAt(
+		this.effectQueue.clearAt(
 			'custom',
 			request.x,
 			request.y,
@@ -66,17 +67,18 @@ export class CustomImageEffect {
 		)
 		const mesh = new THREE.Mesh(this.geometry, material)
 		mesh.position.set(request.x, request.y, appearance.depth)
-		this.activeEffects.add({
-			kind: 'custom',
-			object: mesh,
-			material,
-			duration: appearance.duration,
-			startScale: appearance.startScale,
-			endScale: appearance.endScale,
-			baseOpacity: material.opacity,
-			startX: request.x,
-			startY: request.y,
-		})
+		this.effectQueue.add(
+			new ActiveCustomImageEffect({
+				object: mesh,
+				material,
+				duration: appearance.duration,
+				startScale: appearance.startScale,
+				endScale: appearance.endScale,
+				baseOpacity: material.opacity,
+				startX: request.x,
+				startY: request.y,
+			}),
+		)
 	}
 
 	dispose(): void {

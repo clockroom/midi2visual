@@ -62,7 +62,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/stage/effect-tuning/note-on.ts` | Note Onエフェクト4種の調整 |
 | `src/stage/effect-tuning/math.ts` | 値域制限、非有限値対策、補間とEasing |
 | `src/stage/effects.ts` | 4種の発音エフェクトを接続するFacade |
-| `src/stage/note-impact/` | 4種の発音エフェクト生成と共通Active Effect Runtime |
+| `src/stage/note-impact/` | 4種の発音エフェクト生成、Active Effectクラス、Queue |
 | `src/stage/long-note-dissolve.ts` | ロングトーン粒子Burstの生成、拡散、上限管理 |
 | `src/stage/level-meters.ts` | Trackレベルメータの状態、減衰、InstancedMesh描画 |
 | `src/stage/palette.ts` | ノート、エフェクト、メータで共有するTrack色 |

@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { calculateCoreFlashAppearance } from '../effect-tuning/note-on'
-import type { ActiveNoteImpactEffects } from './active-effects'
+import { ActiveCoreFlashEffect } from './active-core-flash'
+import type { ActiveNoteImpactEffectQueue } from './active-effect-queue'
 import { createEffectSpriteMaterial } from './materials'
 import { loadEffectTexture } from './texture'
 import type { NoteImpactSpawnRequest } from './types'
@@ -11,7 +12,7 @@ export class CoreFlashEffect {
 	private readonly textureLoader = new THREE.TextureLoader()
 	private texture: THREE.Texture | null = null
 
-	constructor(private readonly activeEffects: ActiveNoteImpactEffects) {
+	constructor(private readonly effectQueue: ActiveNoteImpactEffectQueue) {
 		void this.loadTexture()
 	}
 
@@ -28,17 +29,18 @@ export class CoreFlashEffect {
 		)
 		const sprite = new THREE.Sprite(material)
 		sprite.position.set(request.x, request.y, appearance.depth)
-		this.activeEffects.add({
-			kind: 'flash',
-			object: sprite,
-			material,
-			duration: appearance.duration,
-			startScale: appearance.startScale,
-			endScale: appearance.endScale,
-			baseOpacity: material.opacity,
-			startX: request.x,
-			startY: request.y,
-		})
+		this.effectQueue.add(
+			new ActiveCoreFlashEffect({
+				object: sprite,
+				material,
+				duration: appearance.duration,
+				startScale: appearance.startScale,
+				endScale: appearance.endScale,
+				baseOpacity: material.opacity,
+				startX: request.x,
+				startY: request.y,
+			}),
+		)
 	}
 
 	dispose(): void {

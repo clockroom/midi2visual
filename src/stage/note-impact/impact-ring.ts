@@ -1,6 +1,7 @@
 import * as THREE from 'three'
 import { calculateImpactRingAppearances } from '../effect-tuning/note-on'
-import type { ActiveNoteImpactEffects } from './active-effects'
+import type { ActiveNoteImpactEffectQueue } from './active-effect-queue'
+import { ActiveImpactRingEffect } from './active-impact-ring'
 import { createEffectPlaneMaterial } from './materials'
 import { loadEffectTexture } from './texture'
 import type { NoteImpactSpawnRequest } from './types'
@@ -12,7 +13,7 @@ export class ImpactRingEffect {
 	private readonly geometry = new THREE.PlaneGeometry(1, 1)
 	private texture: THREE.Texture | null = null
 
-	constructor(private readonly activeEffects: ActiveNoteImpactEffects) {
+	constructor(private readonly effectQueue: ActiveNoteImpactEffectQueue) {
 		void this.loadTexture()
 	}
 
@@ -31,18 +32,19 @@ export class ImpactRingEffect {
 			)
 			const mesh = new THREE.Mesh(this.geometry, material)
 			mesh.position.set(request.x, request.y, appearance.depth)
-			this.activeEffects.add({
-				kind: 'ring',
-				object: mesh,
-				material,
-				delaySeconds: appearance.delaySeconds,
-				duration: appearance.duration,
-				startScale: appearance.startScale,
-				endScale: appearance.endScale,
-				baseOpacity: material.opacity,
-				startX: request.x,
-				startY: request.y,
-			})
+			this.effectQueue.add(
+				new ActiveImpactRingEffect({
+					object: mesh,
+					material,
+					delaySeconds: appearance.delaySeconds,
+					duration: appearance.duration,
+					startScale: appearance.startScale,
+					endScale: appearance.endScale,
+					baseOpacity: material.opacity,
+					startX: request.x,
+					startY: request.y,
+				}),
+			)
 		}
 	}
 

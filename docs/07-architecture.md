@@ -55,7 +55,12 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	├─ long-note-dissolve.ts
 │	│	├─ main.ts
 │	│	├─ note-impact/
-│	│	│	├─ active-effects.ts
+│	│	│	├─ active-core-flash.ts
+│	│	│	├─ active-custom-image.ts
+│	│	│	├─ active-effect-queue.ts
+│	│	│	├─ active-effect.ts
+│	│	│	├─ active-impact-ring.ts
+│	│	│	├─ active-spark.ts
 │	│	│	├─ core-flash.ts
 │	│	│	├─ custom-image.ts
 │	│	│	├─ impact-ring.ts
@@ -187,16 +192,29 @@ Three.jsへ依存しません。
 - Note Onエフェクト4種を接続するFacade
 - Note Onごとに演出用Velocityを1度だけ取得し、リング、スパーク、カスタム画像へ適用
 - 設定ON/OFFによるTrigger振り分けとActive Effect破棄
-- 共通Runtimeの更新、Clear、Dispose
+- Active Effect Queueの更新、Clear、Dispose
 - 専用`NoteImpactTriggerRequest`による発音入力
 
-### `stage/note-impact/active-effects.ts`
+### `stage/note-impact/active-effect.ts`
 
-- 生成済みNote Onエフェクトの共通Runtime
-- 曲時刻差による遅延、Scale、Opacityの更新
-- エフェクト固有のフレーム更新コールバック呼び出し
+- 生成済みNote Onエフェクトの抽象基底クラス
+- 経過時間、遅延、表示開始、完了判定の共通Lifecycle
+- Scale、Opacityの共通Frame適用
+- 発生位置とMaterial Disposeの所有
+
+### `stage/note-impact/active-*.ts`
+
+- コアフラッシュ、拡散リング、スパーク、カスタム画像の具象Active Effect
+- スパーク固有の移動状態とFrame更新
+- カスタム画像固有のFade Curve選択
+- 継承だけの具象クラスによるDomain上の種類の明示
+
+### `stage/note-impact/active-effect-queue.ts`
+
+- 生成済みActive Effectの追加と反復更新
 - 種類別、位置別、全体のClear
-- Active Effect数の上限制御とMaterial Dispose
+- Active Effect数の上限制御
+- Three.js Groupへの追加・除去とActive EffectのDispose呼び出し
 
 ### `stage/note-impact/core-flash.ts`
 
@@ -214,7 +232,7 @@ Three.jsへ依存しません。
 
 - `spark.png`の非同期読み込み
 - Velocityに応じた個数のSpark Sprite生成
-- 個別の移動速度とフレーム更新コールバックの所有
+- 個別の移動速度を持つ`ActiveSparkEffect`の生成
 
 ### `stage/note-impact/custom-image.ts`
 

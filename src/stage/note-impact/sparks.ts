@@ -3,7 +3,8 @@ import {
 	calculateSparkAppearance,
 	calculateSparkCount,
 } from '../effect-tuning/note-on'
-import type { ActiveNoteImpactEffects } from './active-effects'
+import type { ActiveNoteImpactEffectQueue } from './active-effect-queue'
+import { ActiveSparkEffect } from './active-spark'
 import { createEffectSpriteMaterial } from './materials'
 import { loadEffectTexture } from './texture'
 import type { NoteImpactSpawnRequest } from './types'
@@ -14,7 +15,7 @@ export class SparkEffects {
 	private readonly textureLoader = new THREE.TextureLoader()
 	private texture: THREE.Texture | null = null
 
-	constructor(private readonly activeEffects: ActiveNoteImpactEffects) {
+	constructor(private readonly effectQueue: ActiveNoteImpactEffectQueue) {
 		void this.loadTexture()
 	}
 
@@ -34,23 +35,20 @@ export class SparkEffects {
 			)
 			const sprite = new THREE.Sprite(material)
 			sprite.position.set(request.x, request.y, appearance.depth)
-			this.activeEffects.add({
-				kind: 'spark',
-				object: sprite,
-				material,
-				duration: appearance.duration,
-				startScale: appearance.startScale,
-				endScale: appearance.endScale,
-				baseOpacity: material.opacity,
-				startX: request.x,
-				startY: request.y,
-				onFrame: (object, frame) => {
-					object.position.x =
-						request.x + appearance.velocityX * frame.travel
-					object.position.y =
-						request.y + appearance.velocityY * frame.travel
-				},
-			})
+			this.effectQueue.add(
+				new ActiveSparkEffect({
+					object: sprite,
+					material,
+					duration: appearance.duration,
+					startScale: appearance.startScale,
+					endScale: appearance.endScale,
+					baseOpacity: material.opacity,
+					startX: request.x,
+					startY: request.y,
+					velocityX: appearance.velocityX,
+					velocityY: appearance.velocityY,
+				}),
+			)
 		}
 	}
 
