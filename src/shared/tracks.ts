@@ -1,4 +1,8 @@
 import type { VisualNote } from './types'
+import {
+	TrackOrderer,
+	type TrackOrderRequest,
+} from './track-order'
 
 export type TrackId = number
 
@@ -50,6 +54,7 @@ export class VisualTrack {
 
 export class TrackCollection {
 	private readonly tracksById = new Map<TrackId, VisualTrack>()
+	private readonly orderer = new TrackOrderer()
 	private orderedTracks: readonly VisualTrack[]
 	private readonly displayIndexById = new Map<TrackId, number>()
 
@@ -105,7 +110,11 @@ export class TrackCollection {
 		return displayIndex
 	}
 
-	reorder(orderedTrackIds: readonly TrackId[]): void {
+	applyOrder(request: TrackOrderRequest): void {
+		this.reorder(this.orderer.resolve(this.orderedTracks, request))
+	}
+
+	private reorder(orderedTrackIds: readonly TrackId[]): void {
 		if (orderedTrackIds.length !== this.count) {
 			throw new Error('Track order must contain every Track ID exactly once.')
 		}

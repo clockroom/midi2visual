@@ -1,5 +1,4 @@
 import * as THREE from 'three'
-import { TrackOrderer } from '../shared/track-order'
 import type { MidiModel } from '../shared/types'
 import { MidiTimeMap } from './core/midi-time-map'
 import { StageLayout } from './core/stage-layout'
@@ -21,7 +20,6 @@ export class MidiVisualizer {
 	private readonly guideLayer: TimelineGuideLayer
 	private readonly reactionController: NoteOnReactionController
 	private readonly cameraController: OrbitCameraController
-	private readonly trackOrderer = new TrackOrderer()
 	private readonly unsubscribeSettings: () => void
 	private model: MidiModel | null = null
 	private timeMap: MidiTimeMap | null = null
@@ -166,7 +164,7 @@ export class MidiVisualizer {
 	private applyTrackOrder(model: MidiModel): void {
 		const settings = this.context.settings
 
-		this.trackOrderer.apply(model.tracks, {
+		model.tracks.applyOrder({
 			mode: settings.trackOrderMode,
 			reversed: settings.reverseTrackOrder,
 			beatTicks: model.beatTicks,

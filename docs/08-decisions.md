@@ -367,7 +367,7 @@ ContextはグローバルSingletonにせず、各エフェクトのTrigger Reque
 
 ノートを含む各SMF Trackを`VisualTrack`として表現し、`TrackCollection`がTrack ID検索と現在の表示順を管理する。Track IDには元SMF内のTrack Indexを使い、空Trackを除外しても再採番しない。
 
-`VisualTrack`はTrack内のノートに加えて、最長ノートのTick数と全ノートの平均Pitchを保持する。`TrackCollection`は全Track IDを1度ずつ指定する並べ替えAPIを持ち、`TrackOrderer`が設定された自動並び順を適用する。自由なTrack移動は提供しない。
+`VisualTrack`はTrack内のノートに加えて、最長ノートのTick数と全ノートの平均Pitchを保持する。`TrackCollection.applyOrder()`が設定された自動並び順の計算と適用を一元管理し、自由なTrack移動は提供しない。具体的なComparator選択は、順序計算だけを行う内部協力Objectの`TrackOrderer`へ委譲する。
 
 ### 理由
 
@@ -378,6 +378,8 @@ ContextはグローバルSingletonにせず、各エフェクトのTrigger Reque
 ### 影響
 
 X座標はTrack IDから現在の表示Indexを引いて算出します。Track色はTrack固有属性にせず、表示IndexへPalette順で割り当てます。そのためTrackを並べ替えても画面上の色順は維持され、同じTrackは移動先の色へ変わります。
+
+`MidiVisualizer`は設定変更を検出して`TrackCollection.applyOrder()`を呼び出し、その後の描画再構築を調停します。`TrackOrderer`を所有せず、Track ID配列の生成や適用を外部から操作しません。
 
 初期表示順は従来どおり、ノートを含むTrackのSMF内順序です。音長順、音程順、8拍超Trackを分離するスマート順を選択でき、カメラを反対側へ移した場合は最終順序を反転できます。
 

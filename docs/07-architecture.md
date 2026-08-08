@@ -131,7 +131,8 @@ Three.jsへ依存しません。
 
 - `VisualTrack`によるTrack ID、元SMF Index、名前、ノート、派生値の保持
 - `TrackCollection`によるTrack ID検索と現在の表示順管理
-- 全Trackを過不足なく指定する並べ替え操作の検証
+- `applyOrder()`による並び順計算と適用の一元管理
+- 算出されたTrack IDが全Trackを過不足なく含むことの検証
 - Track IDから表示Indexへの変換
 
 Track IDはTrackの同一性、表示Indexは現在の配置を表します。両者を分離し、並べ替え後もノートやLevel Meterの状態はTrack IDへ紐付けたまま、X座標とTrack色だけを表示Indexから求めます。
@@ -141,9 +142,9 @@ Track IDはTrackの同一性、表示Indexは現在の配置を表します。�
 - MIDIトラック、音長、音程、スマートのComparator選択
 - 8拍超と8拍以下を分けるスマート順の生成
 - 最終順序の反転
-- 算出したTrack ID配列の`TrackCollection`への適用
+- 並び順を表すTrack ID配列の算出
 
-設定から並び順を決めるDomain Serviceであり、Three.jsへ依存しません。`TrackCollection`は具体的な並び順ルールを知らず、検証済みTrack ID配列の保持だけを担当します。
+`TrackOrderer`は順序計算だけを担当する`TrackCollection`の内部協力Objectであり、Collectionを変更しません。`TrackCollection`が`TrackOrderer.resolve()`の結果を検証して自分自身へ適用し、Track管理の公開責務を維持します。どちらもThree.jsへ依存しません。
 
 ### `shared/public-files.ts`
 

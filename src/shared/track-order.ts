@@ -1,4 +1,4 @@
-import type { TrackCollection, VisualTrack } from './tracks'
+import type { TrackId, VisualTrack } from './tracks'
 
 export type TrackOrderMode = 'midi' | 'duration' | 'pitch' | 'smart'
 
@@ -11,12 +11,12 @@ export interface TrackOrderRequest {
 type TrackComparator = (left: VisualTrack, right: VisualTrack) => number
 
 export class TrackOrderer {
-	apply(
-		tracks: TrackCollection,
+	resolve(
+		tracks: readonly VisualTrack[],
 		request: TrackOrderRequest,
-	): void {
+	): TrackId[] {
 		const comparator = this.getComparator(request)
-		const orderedTrackIds = [...tracks.tracks]
+		const orderedTrackIds = [...tracks]
 			.sort(comparator)
 			.map((track) => track.id)
 
@@ -24,7 +24,7 @@ export class TrackOrderer {
 			orderedTrackIds.reverse()
 		}
 
-		tracks.reorder(orderedTrackIds)
+		return orderedTrackIds
 	}
 
 	private getComparator({
