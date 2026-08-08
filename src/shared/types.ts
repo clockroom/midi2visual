@@ -1,3 +1,5 @@
+import type { TrackCollection, TrackId } from './tracks'
+
 export interface AppSettings {
 	midiFileName: string
 	preRollSeconds: number
@@ -50,7 +52,7 @@ export interface AppSettings {
 }
 
 export interface VisualNote {
-	trackIndex: number
+	trackId: TrackId
 	pitch: number
 	velocity: number
 	startSeconds: number
@@ -73,7 +75,7 @@ export interface TempoMarker {
 
 export interface MidiModel {
 	notes: VisualNote[]
-	trackCount: number
+	tracks: TrackCollection
 	minPitch: number
 	maxPitch: number
 	durationSeconds: number

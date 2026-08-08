@@ -47,9 +47,29 @@ TempoとTime Signatureは描画する演奏イベントではないが、秒変�
 
 - ノートを1つ以上含むTrackだけを表示対象とする。
 - 空Trackとメタイベント専用Trackは除外する。
-- 表示順はSMF内のTrack順とする。
-- 並べ替え、表示・非表示設定は持たない。
+- Track IDには元SMF内のTrack Indexを使用し、空Trackを除外しても再採番しない。
+- 初期表示順はノートを含むTrackのSMF内順序とする。
+- Trackの並べ替えを扱うDomain APIは持つが、設定UIと順序の永続化はまだ持たない。
 - 同一Track内の複数Channelは同じ列へ表示する。
+- Track Nameは映像へ表示しないが、将来のTrack管理用データとして保持する。名前がない場合は内部名として`Track n`を補う。
+
+各Trackは`VisualTrack`へ正規化し、`TrackCollection`が識別子検索と表示順を管理する。
+
+```ts
+class VisualTrack {
+	readonly id: TrackId
+	readonly sourceIndex: number
+	readonly name: string
+	readonly notes: readonly VisualNote[]
+	readonly maxNoteDurationTicks: number
+	readonly averagePitch: number
+}
+```
+
+- `maxNoteDurationTicks`はTrack内で最も長い1ノートのNote OnからNote OffまでのTick数とする。
+- `averagePitch`はTrack内全ノートのPitchを単純平均した値とし、整数へ丸めない。
+- 表示順を変更してもTrack IDとTrack内のノートは変えない。
+- Track色はTrack固有値ではなく現在の表示位置へ割り当てる。並べ替え後は同じTrackが新しい表示位置の色を使用する。
 
 ## ノートの正規化
 
@@ -57,7 +77,7 @@ TempoとTime Signatureは描画する演奏イベントではないが、秒変�
 
 ```ts
 interface VisualNote {
-	trackIndex: number
+	trackId: TrackId
 	pitch: number
 	velocity: number
 	startSeconds: number

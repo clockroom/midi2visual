@@ -3,14 +3,15 @@ import {
 	applyDistanceVisibility,
 	type DistanceVisibilityUniform,
 } from '../core/distance-visibility'
-import { TRACK_PALETTE } from '../core/palette'
+import type { StageLayout } from '../core/stage-layout'
+import type { TrackId } from '../../shared/tracks'
 import {
 	type StageContext,
 	type StageSettingsChange,
 } from '../stage-context'
 
 export interface LevelMeterTriggerRequest {
-	trackIndex: number
+	trackId: TrackId
 	velocity: number
 }
 
@@ -19,13 +20,6 @@ interface MeterState {
 	peakLevel: number
 	holdRemaining: number
 	releaseElapsed: number
-}
-
-interface MeterLayout {
-	trackCount: number
-	trackSpacing: number
-	bottomY: number
-	worldHeight: number
 }
 
 interface MeterZone {
@@ -54,7 +48,7 @@ export class TrackLevelMeters {
 	readonly group = new THREE.Group()
 
 	private readonly segmentGeometry = new THREE.PlaneGeometry(1, 1)
-	private readonly states: MeterState[] = []
+	private readonly states = new Map<TrackId, MeterState>()
 	private readonly zones: MeterZone[] = []
 	private readonly matrix = new THREE.Matrix4()
 	private readonly position = new THREE.Vector3()
@@ -62,7 +56,7 @@ export class TrackLevelMeters {
 	private readonly rotation = new THREE.Quaternion()
 	private readonly distanceVisibilityUniform: DistanceVisibilityUniform
 	private readonly unsubscribeSettings: () => void
-	private layout: MeterLayout | null = null
+	private layout: StageLayout | null = null
 	private instancesDirty = false
 
 	constructor(private readonly context: StageContext) {
@@ -76,15 +70,16 @@ export class TrackLevelMeters {
 		})
 	}
 
-	configure(layout: MeterLayout): void {
+	configure(layout: StageLayout): void {
 		const settings = this.context.settings
-		const trackCountChanged = this.layout?.trackCount !== layout.trackCount
+		const tracksChanged =
+			!this.layout || !this.hasSameTrackIds(this.layout, layout)
 		this.distanceVisibilityUniform.value = settings.distanceVisibility
 		this.layout = layout
 		this.group.visible = settings.showLevelMeters
 
-		if (trackCountChanged || this.zones.length === 0) {
-			this.build(layout.trackCount)
+		if (tracksChanged || this.zones.length === 0) {
+			this.build(layout)
 		}
 
 		if (!settings.showLevelMeters) {
@@ -101,7 +96,7 @@ export class TrackLevelMeters {
 			return
 		}
 
-		const state = this.states[request.trackIndex]
+		const state = this.states.get(request.trackId)
 
 		if (!state) {
 			return
@@ -130,7 +125,7 @@ export class TrackLevelMeters {
 		const safeDeltaSeconds = Math.max(0, deltaSeconds)
 		let changed = this.instancesDirty
 
-		for (const state of this.states) {
+		for (const state of this.states.values()) {
 			if (state.level <= 0) {
 				continue
 			}
@@ -162,7 +157,7 @@ export class TrackLevelMeters {
 	}
 
 	clear(): void {
-		for (const state of this.states) {
+		for (const state of this.states.values()) {
 			state.level = 0
 			state.peakLevel = 0
 			state.holdRemaining = 0
@@ -189,7 +184,7 @@ export class TrackLevelMeters {
 		this.group.visible = current.showLevelMeters
 
 		if (this.layout && (sensitivityChanged || this.zones.length === 0)) {
-			this.build(this.layout.trackCount)
+			this.build(this.layout)
 		}
 
 		if (!current.showLevelMeters) {
@@ -201,13 +196,13 @@ export class TrackLevelMeters {
 		this.updateInstances()
 	}
 
-	private build(trackCount: number): void {
+	private build(layout: StageLayout): void {
 		this.clearMeshes()
-		this.states.length = 0
+		this.states.clear()
 		const { lowEnd, mediumEnd } = this.getZoneBoundaries()
 
-		for (let trackIndex = 0; trackIndex < trackCount; trackIndex += 1) {
-			this.states.push({
+		for (const track of layout.tracks) {
+			this.states.set(track.id, {
 				level: 0,
 				peakLevel: 0,
 				holdRemaining: 0,
@@ -216,20 +211,20 @@ export class TrackLevelMeters {
 		}
 
 		this.zones.push(
-			this.createZone(0, lowEnd, 0.4, 0x45d65b, trackCount),
+			this.createZone(0, lowEnd, 0.4, 0x45d65b, layout.trackCount),
 			this.createZone(
 				lowEnd,
 				mediumEnd,
 				0.7,
 				0xffd84a,
-				trackCount,
+				layout.trackCount,
 			),
 			this.createZone(
 				mediumEnd,
 				TOTAL_SEGMENTS,
 				1,
 				0xff4a4a,
-				trackCount,
+				layout.trackCount,
 			),
 		)
 	}
@@ -313,11 +308,20 @@ export class TrackLevelMeters {
 				settings.levelMeterOpacity * zone.opacityRatio
 			const segmentCount = zone.endSegment - zone.startSegment
 
-			for (let trackIndex = 0; trackIndex < this.layout.trackCount; trackIndex += 1) {
-				const color = this.getColor(zone, trackIndex)
+			for (
+				let displayIndex = 0;
+				displayIndex < this.layout.trackCount;
+				displayIndex += 1
+			) {
+				const track = this.layout.trackAt(displayIndex)
+				const color = this.getColor(zone, track.id)
 
-				for (let localSegment = 0; localSegment < segmentCount; localSegment += 1) {
-					const instanceIndex = trackIndex * segmentCount + localSegment
+				for (
+					let localSegment = 0;
+					localSegment < segmentCount;
+					localSegment += 1
+				) {
+					const instanceIndex = displayIndex * segmentCount + localSegment
 					zone.mesh.setColorAt(instanceIndex, color)
 				}
 			}
@@ -328,7 +332,7 @@ export class TrackLevelMeters {
 		}
 	}
 
-	private getColor(zone: MeterZone, trackIndex: number): THREE.Color {
+	private getColor(zone: MeterZone, trackId: TrackId): THREE.Color {
 		switch (this.context.settings.levelMeterColorMode) {
 			case 'white':
 				return new THREE.Color(WHITE_METER_COLOR)
@@ -336,7 +340,7 @@ export class TrackLevelMeters {
 				return new THREE.Color(BLUE_METER_COLOR)
 			case 'track':
 				return new THREE.Color(
-					TRACK_PALETTE[trackIndex % TRACK_PALETTE.length],
+					this.layout?.trackToColor(trackId) ?? WHITE_METER_COLOR,
 				)
 			case 'normal':
 			default:
@@ -361,18 +365,32 @@ export class TrackLevelMeters {
 		for (const zone of this.zones) {
 			const segmentCount = zone.endSegment - zone.startSegment
 
-			for (let trackIndex = 0; trackIndex < this.layout.trackCount; trackIndex += 1) {
-				const state = this.states[trackIndex]
+			for (
+				let displayIndex = 0;
+				displayIndex < this.layout.trackCount;
+				displayIndex += 1
+			) {
+				const track = this.layout.trackAt(displayIndex)
+				const state = this.states.get(track.id)
+
+				if (!state) {
+					continue
+				}
+
 				const activeSegmentCount = Math.ceil(
 					THREE.MathUtils.clamp(state.level, 0, 1) * TOTAL_SEGMENTS,
 				)
 
-				for (let localSegment = 0; localSegment < segmentCount; localSegment += 1) {
+				for (
+					let localSegment = 0;
+					localSegment < segmentCount;
+					localSegment += 1
+				) {
 					const segmentIndex = zone.startSegment + localSegment
-					const instanceIndex = trackIndex * segmentCount + localSegment
+					const instanceIndex = displayIndex * segmentCount + localSegment
 					const active = segmentIndex < activeSegmentCount
 					this.position.set(
-						trackIndex * this.layout.trackSpacing,
+						this.layout.trackToX(track.id),
 						this.layout.bottomY + (segmentIndex + 0.5) * cellHeight,
 						Z_FIGHTING_OFFSET - settings.levelMeterDepthOffset,
 					)
@@ -397,5 +415,18 @@ export class TrackLevelMeters {
 		}
 
 		this.zones.length = 0
+	}
+
+	private hasSameTrackIds(
+		left: StageLayout,
+		right: StageLayout,
+	): boolean {
+		if (left.trackCount !== right.trackCount) {
+			return false
+		}
+
+		const rightTrackIds = new Set(right.tracks.map((track) => track.id))
+
+		return left.tracks.every((track) => rightTrackIds.has(track.id))
 	}
 }

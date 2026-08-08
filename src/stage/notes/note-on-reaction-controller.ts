@@ -1,6 +1,5 @@
 import * as THREE from 'three'
 import type { MidiModel, VisualNote } from '../../shared/types'
-import { TRACK_PALETTE } from '../core/palette'
 import type { StageLayout } from '../core/stage-layout'
 import { TrackLevelMeters } from '../effects/level-meters'
 import { NoteImpactEffects } from '../effects/note-impact-effects'
@@ -106,16 +105,15 @@ export class NoteOnReactionController {
 			return
 		}
 
-		const color =
-			TRACK_PALETTE[note.trackIndex % TRACK_PALETTE.length]
+		const color = this.layout.trackToColor(note.trackId)
 		this.impactEffects.trigger({
-			x: this.layout.trackToX(note.trackIndex),
+			x: this.layout.trackToX(note.trackId),
 			y: this.layout.pitchToY(note.pitch),
 			color,
 			velocity: note.velocity,
 		})
 		this.levelMeters.trigger({
-			trackIndex: note.trackIndex,
+			trackId: note.trackId,
 			velocity: note.velocity,
 		})
 	}
@@ -125,12 +123,7 @@ export class NoteOnReactionController {
 			return
 		}
 
-		this.levelMeters.configure({
-			trackCount: this.model.trackCount,
-			trackSpacing: this.context.settings.trackSpacing,
-			bottomY: this.layout.bottomY,
-			worldHeight: this.layout.worldHeight,
-		})
+		this.levelMeters.configure(this.layout)
 	}
 
 	private findFirstNoteAfter(songSeconds: number): number {

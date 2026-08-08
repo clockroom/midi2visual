@@ -5,7 +5,6 @@ import {
 	type DistanceVisibilityUniform,
 } from '../core/distance-visibility'
 import type { MidiTimeMap } from '../core/midi-time-map'
-import { TRACK_PALETTE } from '../core/palette'
 import type { StageLayout } from '../core/stage-layout'
 import {
 	calculateLongFadeNoteAppearance,
@@ -74,8 +73,7 @@ export class RenderedNote {
 		private readonly dissolveEffects: LongNoteDissolveEffects,
 	) {
 		const settings = context.settings
-		this.color =
-			TRACK_PALETTE[note.trackIndex % TRACK_PALETTE.length]
+		this.color = layout.trackToColor(note.trackId)
 		const geometry = this.createGeometry(settings)
 		const material = this.createNoteMaterial(settings)
 		this.distanceVisibilityUniform = {
@@ -84,7 +82,7 @@ export class RenderedNote {
 		applyDistanceVisibility(material, this.distanceVisibilityUniform)
 		this.object = new THREE.Mesh(geometry, material)
 		this.object.position.set(
-			layout.trackToX(note.trackIndex),
+			layout.trackToX(note.trackId),
 			layout.pitchToY(note.pitch),
 			-((note.startSeconds + note.endSeconds) / 2) *
 				settings.timeUnitsPerSecond,
@@ -453,7 +451,7 @@ export class RenderedNote {
 		const particleSeconds = this.timeMap.ticksToSeconds(particleTicks)
 
 		return new THREE.Vector3(
-			this.layout.trackToX(this.note.trackIndex) + placement.xOffset,
+			this.layout.trackToX(this.note.trackId) + placement.xOffset,
 			this.layout.pitchToY(this.note.pitch) + placement.yOffset,
 			(songSeconds - particleSeconds) * settings.timeUnitsPerSecond,
 		)

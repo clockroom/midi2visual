@@ -44,6 +44,7 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	├─ midi.ts
 │	│	├─ public-files.ts
 │	│	├─ settings.ts
+│	│	├─ tracks.ts
 │	│	└─ types.ts
 │	├─ stage/
 │	│	├─ core/
@@ -118,11 +119,21 @@ main.ts
 - 設定されたMIDIファイルの取得
 - `@tonejs/midi`による解析
 - ノートTrackの抽出
-- Noteデータの正規化
+- NoteとTrackデータの正規化
+- Trackごとの最大ノート長と平均Pitchの算出
 - Pitch範囲と曲長の算出
 - 小節、拍、Tempo Timelineの生成
 
 Three.jsへ依存しません。
+
+### `shared/tracks.ts`
+
+- `VisualTrack`によるTrack ID、元SMF Index、名前、ノート、派生値の保持
+- `TrackCollection`によるTrack ID検索と現在の表示順管理
+- 全Trackを過不足なく指定する並べ替え操作の検証
+- Track IDから表示Indexへの変換
+
+Track IDはTrackの同一性、表示Indexは現在の配置を表します。両者を分離し、並べ替え後もノートやLevel Meterの状態はTrack IDへ紐付けたまま、X座標とTrack色だけを表示Indexから求めます。
 
 ### `shared/public-files.ts`
 
@@ -178,7 +189,8 @@ Three.jsへ依存しません。
 ### `stage/core/stage-layout.ts`
 
 - Track数、Pitch範囲、設定からWorld寸法と中心座標を算出
-- Track IndexからX座標への変換
+- Track IDから現在の表示IndexとX座標への変換
+- 現在の表示Indexに対するTrack色の割り当て
 - MIDI PitchからY座標への変換
 
 ### `stage/core/midi-time-map.ts`

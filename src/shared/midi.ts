@@ -1,5 +1,6 @@
 import { Midi } from '@tonejs/midi'
 import { toPublicFileUrl } from './public-files'
+import { TrackCollection, VisualTrack } from './tracks'
 import type {
 	MidiModel,
 	TempoMarker,
@@ -21,27 +22,37 @@ export async function loadMidiModel(fileName: string): Promise<MidiModel> {
 	}
 
 	const midi = new Midi(await response.arrayBuffer())
-	const sourceTracks = midi.tracks.filter((track) => track.notes.length > 0)
-
-	if (sourceTracks.length === 0) {
-		throw new Error(`${fileName}にNote On / Offから構成されたノートがありません。`)
-	}
-
+	const tracks: VisualTrack[] = []
 	const notes: VisualNote[] = []
 
-	sourceTracks.forEach((track, trackIndex) => {
-		for (const note of track.notes) {
-			notes.push({
-				trackIndex,
-				pitch: note.midi,
-				velocity: note.velocity,
-				startSeconds: note.time,
-				endSeconds: note.time + note.duration,
-				startTicks: note.ticks,
-				endTicks: note.ticks + note.durationTicks,
-			})
+	midi.tracks.forEach((track, sourceIndex) => {
+		if (track.notes.length === 0) {
+			return
 		}
+
+		const trackNotes = track.notes.map((note) => ({
+			trackId: sourceIndex,
+			pitch: note.midi,
+			velocity: note.velocity,
+			startSeconds: note.time,
+			endSeconds: note.time + note.duration,
+			startTicks: note.ticks,
+			endTicks: note.ticks + note.durationTicks,
+		}))
+		tracks.push(
+			new VisualTrack({
+				id: sourceIndex,
+				sourceIndex,
+				name: track.name.trim() || `Track ${sourceIndex + 1}`,
+				notes: trackNotes,
+			}),
+		)
+		notes.push(...trackNotes)
 	})
+
+	if (tracks.length === 0) {
+		throw new Error(`${fileName}にNote On / Offから構成されたノートがありません。`)
+	}
 
 	notes.sort((left, right) => left.startSeconds - right.startSeconds)
 
@@ -117,7 +128,7 @@ export async function loadMidiModel(fileName: string): Promise<MidiModel> {
 
 	return {
 		notes,
-		trackCount: sourceTracks.length,
+		tracks: new TrackCollection(tracks),
 		minPitch,
 		maxPitch,
 		durationSeconds,

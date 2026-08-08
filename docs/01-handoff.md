@@ -49,6 +49,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | ファイル | 責務 |
 |---|---|
 | `src/shared/midi.ts` | SMF読み込みと描画用データへの正規化 |
+| `src/shared/tracks.ts` | Track Entity、識別子検索、表示順、Track派生値の管理 |
 | `src/shared/types.ts` | 設定、MIDIモデル、ページ間メッセージの型 |
 | `src/shared/settings.ts` | 初期設定、読み込み、保存 |
 | `src/shared/public-files.ts` | `public`直下のファイル名正規化とURL生成 |
@@ -86,6 +87,10 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 
 - 描画コードからMIDIライブラリのオブジェクトを直接参照しません。
 - `src/shared/midi.ts`で`MidiModel`へ正規化してから描画へ渡します。
+- `VisualTrack.id`は元SMF内のTrack Indexであり、空Trackを除外しても再採番しません。
+- `TrackCollection`が現在の表示順を管理し、ノートとLevel MeterはTrack IDへ紐付けます。
+- Track色はTrack固有ではなく表示位置へ割り当てるため、将来並べ替えた場合も画面上の色順は変わりません。
+- `VisualTrack`は最長ノートのTick数と全ノートの平均Pitchを保持します。
 - Tempo変更は対応済みです。
 - 途中の拍子変更は非対応です。先頭拍子を曲全体へ適用します。
 

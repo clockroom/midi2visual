@@ -361,6 +361,26 @@ X軸の意味をTrackへ限定し、MVPの構造を単純に保つためです�
 
 ContextはグローバルSingletonにせず、各エフェクトのTrigger Requestを生成しません。Triggerは機能ごとの専用Request型を持ち、呼び出し側が必要な値だけをObject Literalで組み立てます。
 
+## Trackの同一性と表示順を分離する
+
+### 判断
+
+ノートを含む各SMF Trackを`VisualTrack`として表現し、`TrackCollection`がTrack ID検索と現在の表示順を管理する。Track IDには元SMF内のTrack Indexを使い、空Trackを除外しても再採番しない。
+
+`VisualTrack`はTrack内のノートに加えて、最長ノートのTick数と全ノートの平均Pitchを保持する。`TrackCollection`は全Track IDを1度ずつ指定する並べ替えAPIを持つが、設定UIと順序の永続化は別の機能追加で行う。
+
+### 理由
+
+配列IndexをTrackの識別子と表示位置の両方に使うと、並べ替え後にノート、発音エフェクト、レベルメータの状態が別Trackへ誤って結び付きます。安定したTrack IDと可変の表示Indexを分けることで、状態はTrackへ紐付けたまま、配置だけを変更できます。
+
+最長ノート長と平均Pitchは、将来のTrack並べ替え条件としてMIDI解析時に1度だけ算出します。最長ノート長はNote OnからNote OffまでのTick数、平均Pitchは全ノートの重みなし算術平均とします。
+
+### 影響
+
+X座標はTrack IDから現在の表示Indexを引いて算出します。Track色はTrack固有属性にせず、表示IndexへPalette順で割り当てます。そのためTrackを並べ替えても画面上の色順は維持され、同じTrackは移動先の色へ変わります。
+
+現時点の初期表示順は従来どおり、ノートを含むTrackのSMF内順序です。並べ替えUIを追加するまでは見た目と操作に変更はありません。
+
 ## Visualizerを状態とLifecycleを持つ描画オブジェクトへ分割する
 
 ### 判断
