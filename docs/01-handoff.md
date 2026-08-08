@@ -11,6 +11,7 @@ midi2visualは、DTM成果の公開動画を作るための、音声を再生し
 - SMF Format 0 / 1の読み込み
 - Note On / Off、Velocity、Tempo、PPQ、先頭Time Signatureの利用
 - Track、Pitch、Timeを3軸へ割り当てたThree.js描画
+- MIDI順、音長順、音程順、スマート順と反転によるTrack自動並べ替え
 - ノートの発光と残光
 - 発音時のコアフラッシュ、二重の拡散リング、スパーク
 - Track色で合成する拡大・縮小対応カスタム画像
@@ -49,6 +50,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | ファイル | 責務 |
 |---|---|
 | `src/shared/midi.ts` | SMF読み込みと描画用データへの正規化 |
+| `src/shared/track-order.ts` | 設定に応じたTrack自動並べ替え |
 | `src/shared/tracks.ts` | Track Entity、識別子検索、表示順、Track派生値の管理 |
 | `src/shared/types.ts` | 設定、MIDIモデル、ページ間メッセージの型 |
 | `src/shared/settings.ts` | 初期設定、読み込み、保存 |
@@ -89,8 +91,9 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - `src/shared/midi.ts`で`MidiModel`へ正規化してから描画へ渡します。
 - `VisualTrack.id`は元SMF内のTrack Indexであり、空Trackを除外しても再採番しません。
 - `TrackCollection`が現在の表示順を管理し、ノートとLevel MeterはTrack IDへ紐付けます。
-- Track色はTrack固有ではなく表示位置へ割り当てるため、将来並べ替えた場合も画面上の色順は変わりません。
+- Track色はTrack固有ではなく表示位置へ割り当てるため、並べ替えても画面上の色順は変わりません。
 - `VisualTrack`は最長ノートのTick数と全ノートの平均Pitchを保持します。
+- Track順は`TrackOrderer`が設定から決定し、自由な個別移動は行いません。
 - Tempo変更は対応済みです。
 - 途中の拍子変更は非対応です。先頭拍子を曲全体へ適用します。
 
@@ -145,6 +148,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - 粒子サイズを変更すると、カメラとの距離によらず画面上の大きさが変わる
 - カスタム画像が発音時にTrack色で合成され、フェードしながら拡大または縮小する
 - TrackレベルメータがNote Onへ反応し、ロングトーンでも一定時間で減衰する
+- Trackの4種類の並び順と反転が即時反映され、再生位置とカメラ状態が維持される
 - レベルメータの表示、色、感度、不透明度、高さ、幅、奥行き位置設定が即時反映される
 - 再生、停止、プリロール、ポストロールが機能する
 - Tempo変更位置でBPM表示が切り替わる

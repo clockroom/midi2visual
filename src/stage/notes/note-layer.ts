@@ -195,7 +195,9 @@ export class NoteLayer {
 			previous.noteSize !== current.noteSize ||
 			previous.noteOpacity !== current.noteOpacity ||
 			previous.timeUnitsPerSecond !== current.timeUnitsPerSecond ||
-			previous.trackSpacing !== current.trackSpacing
+			previous.trackSpacing !== current.trackSpacing ||
+			previous.trackOrderMode !== current.trackOrderMode ||
+			previous.reverseTrackOrder !== current.reverseTrackOrder
 		)
 	}
 }

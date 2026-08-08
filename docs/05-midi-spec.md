@@ -49,7 +49,8 @@ TempoとTime Signatureは描画する演奏イベントではないが、秒変�
 - 空Trackとメタイベント専用Trackは除外する。
 - Track IDには元SMF内のTrack Indexを使用し、空Trackを除外しても再採番しない。
 - 初期表示順はノートを含むTrackのSMF内順序とする。
-- Trackの並べ替えを扱うDomain APIは持つが、設定UIと順序の永続化はまだ持たない。
+- 表示順はMIDIトラック、音長、音程、スマートの4種類から設定でき、反転もできる。
+- 任意のTrackを個別に移動する機能は持たない。
 - 同一Track内の複数Channelは同じ列へ表示する。
 - Track Nameは映像へ表示しないが、将来のTrack管理用データとして保持する。名前がない場合は内部名として`Track n`を補う。
 
@@ -70,6 +71,23 @@ class VisualTrack {
 - `averagePitch`はTrack内全ノートのPitchを単純平均した値とし、整数へ丸めない。
 - 表示順を変更してもTrack IDとTrack内のノートは変えない。
 - Track色はTrack固有値ではなく現在の表示位置へ割り当てる。並べ替え後は同じTrackが新しい表示位置の色を使用する。
+
+## Trackの自動並べ替え
+
+最大発音時間は`maxNoteDurationTicks`、平均音程は`averagePitch`を使用する。最終比較には常に`sourceIndex`昇順を使用し、同じ入力から同じ順序を得る。
+
+| 設定 | 第1条件 | 第2条件 |
+|---|---|---|
+| MIDIトラック | `sourceIndex`昇順 | なし |
+| 音長 | 最大発音時間の長い順 | 平均Pitchの高い順 |
+| 音程 | 平均Pitchの高い順 | 最大発音時間の長い順 |
+
+スマートは`maxNoteDurationTicks > beatTicks × 8`を8拍超Groupとする。ちょうど8拍は8拍以下Groupに含める。
+
+- 8拍超Groupを8拍以下Groupより先へ置く。
+- 8拍超Groupは音長順を使用する。
+- 8拍以下Groupは音程順を使用する。
+- 反転設定は上記で確定した配列全体へ最後に適用する。
 
 ## ノートの正規化
 

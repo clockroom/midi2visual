@@ -1,4 +1,5 @@
 import type { TrackCollection, TrackId } from './tracks'
+import type { TrackOrderMode } from './track-order'
 
 export interface AppSettings {
 	midiFileName: string
@@ -7,6 +8,8 @@ export interface AppSettings {
 	lookAheadSeconds: number
 	timeUnitsPerSecond: number
 	trackSpacing: number
+	trackOrderMode: TrackOrderMode
+	reverseTrackOrder: boolean
 	noteSize: number
 	noteOpacity: number
 	noteBaseEmissiveIntensity: number

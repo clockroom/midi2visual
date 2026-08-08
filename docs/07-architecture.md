@@ -44,6 +44,7 @@ ViteのRollup Inputへ2つのHTMLを指定します。
 │	│	├─ midi.ts
 │	│	├─ public-files.ts
 │	│	├─ settings.ts
+│	│	├─ track-order.ts
 │	│	├─ tracks.ts
 │	│	└─ types.ts
 │	├─ stage/
@@ -134,6 +135,15 @@ Three.jsへ依存しません。
 - Track IDから表示Indexへの変換
 
 Track IDはTrackの同一性、表示Indexは現在の配置を表します。両者を分離し、並べ替え後もノートやLevel Meterの状態はTrack IDへ紐付けたまま、X座標とTrack色だけを表示Indexから求めます。
+
+### `shared/track-order.ts`
+
+- MIDIトラック、音長、音程、スマートのComparator選択
+- 8拍超と8拍以下を分けるスマート順の生成
+- 最終順序の反転
+- 算出したTrack ID配列の`TrackCollection`への適用
+
+設定から並び順を決めるDomain Serviceであり、Three.jsへ依存しません。`TrackCollection`は具体的な並び順ルールを知らず、検証済みTrack ID配列の保持だけを担当します。
 
 ### `shared/public-files.ts`
 

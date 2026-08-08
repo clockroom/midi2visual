@@ -79,6 +79,7 @@ button {
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 	grid-template-areas:
 		"file longnote"
+		"track longnote"
 		"levelmeter customeffect"
 		"advanced advanced";
 	gap: 1rem;
@@ -90,6 +91,10 @@ button {
 
 .settings-card-long-note {
 	grid-area: longnote;
+}
+
+.settings-card-track {
+	grid-area: track;
 }
 
 .settings-card-custom-effect {
@@ -307,6 +312,7 @@ button.secondary {
 		grid-template-columns: 1fr;
 		grid-template-areas:
 			"file"
+			"track"
 			"longnote"
 			"customeffect"
 			"levelmeter"

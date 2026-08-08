@@ -61,6 +61,24 @@ const groups: Record<string, SettingDefinition[]> = {
 			defaultExtension: '.mid',
 		},
 	],
+	'track-settings': [
+		{
+			kind: 'select',
+			key: 'trackOrderMode',
+			label: '並び順',
+			options: [
+				{ value: 'midi', label: 'MIDIトラック' },
+				{ value: 'duration', label: '音長' },
+				{ value: 'pitch', label: '音程' },
+				{ value: 'smart', label: 'スマート' },
+			],
+		},
+		{
+			kind: 'boolean',
+			key: 'reverseTrackOrder',
+			label: '並び順を反転',
+		},
+	],
 	'time-settings': [
 		{ kind: 'number', key: 'preRollSeconds', label: 'プリロール (秒)', min: 0, max: 10, step: 0.1 },
 		{ kind: 'number', key: 'postRollSeconds', label: 'ポストロール (秒)', min: 0, max: 10, step: 0.1 },

@@ -13,7 +13,7 @@
 - Sustain Pedalを含むCCを描画へ反映しません。
 - Pitch Bend、Aftertouch、Program Change、SysExを描画へ反映しません。
 - MIDI ChannelをTrack内で分離しません。
-- Trackの並べ替え、表示・非表示を変更できません。
+- Track順は用意された4種類と反転だけを選択でき、任意のTrackを個別に移動できません。
 - Track Nameを画面へ表示しません。
 - 曲長は最後のNote Offを基準とし、それより後のメタイベントを含めません。
 
@@ -80,7 +80,7 @@
 - `InstancedMesh`による大量ノート最適化
 - PNG連番またはOffline Frame Rendering
 - 曲ごとのPreset
-- Track表示切り替えと並べ替え
+- Track表示切り替えと自由並べ替え
 - CC、Expression、Pitch Bend連動演出
 - 拍子変更対応
 - Markerによるセクション演出

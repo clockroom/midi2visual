@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { TrackOrderer } from '../shared/track-order'
 import type { MidiModel } from '../shared/types'
 import { MidiTimeMap } from './core/midi-time-map'
 import { StageLayout } from './core/stage-layout'
@@ -20,6 +21,7 @@ export class MidiVisualizer {
 	private readonly guideLayer: TimelineGuideLayer
 	private readonly reactionController: NoteOnReactionController
 	private readonly cameraController: OrbitCameraController
+	private readonly trackOrderer = new TrackOrderer()
 	private readonly unsubscribeSettings: () => void
 	private model: MidiModel | null = null
 	private timeMap: MidiTimeMap | null = null
@@ -49,6 +51,7 @@ export class MidiVisualizer {
 	}
 
 	load(model: MidiModel): void {
+		this.applyTrackOrder(model)
 		const timeMap = new MidiTimeMap(model)
 		const layout = new StageLayout(model, this.context.settings)
 		this.model = model
@@ -136,6 +139,12 @@ export class MidiVisualizer {
 			return
 		}
 
+		const trackOrderChanged = this.trackOrderChanged(change)
+
+		if (trackOrderChanged) {
+			this.applyTrackOrder(this.model)
+		}
+
 		const layout = new StageLayout(this.model, change.current)
 		this.noteLayer.applySettingsChange(
 			change,
@@ -144,7 +153,33 @@ export class MidiVisualizer {
 			layout,
 		)
 		this.guideLayer.applySettingsChange(change, this.model, layout)
-		this.reactionController.reconfigure(this.model, layout)
+
+		if (trackOrderChanged) {
+			this.reactionController.load(this.model, layout)
+		} else {
+			this.reactionController.reconfigure(this.model, layout)
+		}
+
 		this.cameraController.configure(layout, false)
+	}
+
+	private applyTrackOrder(model: MidiModel): void {
+		const settings = this.context.settings
+
+		this.trackOrderer.apply(model.tracks, {
+			mode: settings.trackOrderMode,
+			reversed: settings.reverseTrackOrder,
+			beatTicks: model.beatTicks,
+		})
+	}
+
+	private trackOrderChanged({
+		previous,
+		current,
+	}: StageSettingsChange): boolean {
+		return (
+			previous.trackOrderMode !== current.trackOrderMode ||
+			previous.reverseTrackOrder !== current.reverseTrackOrder
+		)
 	}
 }
