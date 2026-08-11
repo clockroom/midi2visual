@@ -37,7 +37,7 @@ stateDiagram-v2
 	PeakHold --> Release: Hold終了
 	Release --> Idle: Release終点
 	PeakHold --> PeakHold: 再発音 / Peak再計算
-	Release --> PeakHold: 再発音 / Boostして終点を再評価
+	Release --> PeakHold: 再発音 / Peakと終点を再評価
 
 	note right of Release
 		短音: Note Onから600msで終了

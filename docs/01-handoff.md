@@ -77,7 +77,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/stage/effects/note-impact/` | 4種の発音エフェクト生成、Active Effectクラス、Queue |
 | `src/stage/effects/long-note-dissolve.ts` | ロングトーン粒子Burstの生成、拡散、上限管理 |
 | `src/stage/effects/level-meters.ts` | TrackレベルメータのInstancedMesh描画 |
-| `src/stage/effects/level-meter-envelope.ts` | Note Off同期Release、短音固定Release、再発音Boost |
+| `src/stage/effects/level-meter-envelope.ts` | Note Off同期Release、短音固定Release、再発音Peak更新 |
 | `src/stage/core/palette.ts` | ノート、エフェクト、メータで共有するTrack色 |
 | `src/stage/main.ts` | 映像ページの初期化、入力、再生、表示更新 |
 | `src/control/main.ts` | 設定UIの生成、保存、通知 |
@@ -149,7 +149,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - 粒子サイズを変更すると、カメラとの距離によらず画面上の大きさが変わる
 - カスタム画像が発音時にTrack色で合成され、フェードしながら拡大または縮小する
 - TrackレベルメータがNote Onへ反応し、ロングトーンではNote Offへ向けて減衰する
-- 短いノートでは固定`600ms` Envelopeを維持し、再発音時はLevelが視認できる幅で上昇する
+- 短いノートでは固定`600ms` Envelopeを維持し、再発音時は新しいVelocityと現在Levelの大きい方を使用する
 - Trackの4種類の並び順と反転が即時反映され、再生位置とカメラ状態が維持される
 - レベルメータの表示、色、感度、不透明度、高さ、幅、奥行き位置設定が即時反映される
 - 再生、停止、プリロール、ポストロールが機能する

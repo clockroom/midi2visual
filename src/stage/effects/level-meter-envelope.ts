@@ -8,7 +8,6 @@ const PEAK_HOLD_SECONDS = 0.08
 const FIXED_RELEASE_SECONDS = 0.52
 const SHORT_NOTE_ENVELOPE_SECONDS =
 	PEAK_HOLD_SECONDS + FIXED_RELEASE_SECONDS
-const RETRIGGER_BOOST = 1.1
 
 export class LevelMeterEnvelope {
 	private level = 0
@@ -29,8 +28,7 @@ export class LevelMeterEnvelope {
 		this.advanceTo(noteOnSeconds)
 
 		const velocity = clamp01(request.velocity)
-		const boostedLevel = Math.min(this.level * RETRIGGER_BOOST, 1)
-		const nextPeak = Math.max(velocity, boostedLevel)
+		const nextPeak = Math.max(velocity, this.level)
 		const noteDuration = noteOffSeconds - noteOnSeconds
 		const candidateReleaseEnd =
 			noteDuration < SHORT_NOTE_ENVELOPE_SECONDS
