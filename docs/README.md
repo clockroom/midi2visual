@@ -24,6 +24,8 @@
 	- 重要な設計判断と理由
 9. [`09-known-limitations.md`](09-known-limitations.md)
 	- 現在の制約、非対応機能、将来候補
+10. [`10-uml/README.md`](10-uml/README.md)
+	- 主要Objectの関係、実行順、Lifecycleを示すUML付録
 
 ## 仕様の正本
 
@@ -31,6 +33,7 @@
 - 機能と表示の期待動作は`docs`配下の仕様書を正本とします。
 - 設定の型と初期値は[`src/shared/types.ts`](../src/shared/types.ts)および[`src/shared/settings.ts`](../src/shared/settings.ts)を最終的な正本とします。
 - 実装とドキュメントが食い違う場合は、意図的な仕様変更か不具合かを確認してから両方を更新してください。
+- UML付録は構造把握用の要約とし、仕様書とSource Codeを正本とします。
 
 ## 記述方針
 

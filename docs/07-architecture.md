@@ -397,6 +397,8 @@ Track IDはTrackの同一性、表示Indexは現在の配置を表します。�
 
 ## データフロー
 
+主要Objectの所有、継承、実行順、Lifecycleは[`10-uml/README.md`](10-uml/README.md)に付録としてまとめています。
+
 ```mermaid
 flowchart LR
 	SMF["public/(設定したMIDI名)"] --> Parser["@tonejs/midi"]
