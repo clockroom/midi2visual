@@ -9,17 +9,14 @@ import {
 	type StageContext,
 	type StageSettingsChange,
 } from '../stage-context'
+import {
+	LevelMeterEnvelope,
+	type LevelMeterEnvelopeTriggerRequest,
+} from './level-meter-envelope'
 
-export interface LevelMeterTriggerRequest {
+export interface LevelMeterTriggerRequest
+	extends LevelMeterEnvelopeTriggerRequest {
 	trackId: TrackId
-	velocity: number
-}
-
-interface MeterState {
-	level: number
-	peakLevel: number
-	holdRemaining: number
-	releaseElapsed: number
 }
 
 interface MeterZone {
@@ -35,8 +32,6 @@ const DEFAULT_LOW_SEGMENT_END = 14
 const DEFAULT_MEDIUM_SEGMENT_END = 18
 const SENSITIVE_LOW_SEGMENT_END = 6
 const SENSITIVE_MEDIUM_SEGMENT_END = 14
-const PEAK_HOLD_SECONDS = 0.08
-const RELEASE_SECONDS = 0.52
 const SEGMENT_HEIGHT_RATIO = 0.72
 const Z_FIGHTING_OFFSET = 0.025
 const INACTIVE_SCALE = 0.000001
@@ -48,7 +43,7 @@ export class TrackLevelMeters {
 	readonly group = new THREE.Group()
 
 	private readonly segmentGeometry = new THREE.PlaneGeometry(1, 1)
-	private readonly states = new Map<TrackId, MeterState>()
+	private readonly states = new Map<TrackId, LevelMeterEnvelope>()
 	private readonly zones: MeterZone[] = []
 	private readonly matrix = new THREE.Matrix4()
 	private readonly position = new THREE.Vector3()
@@ -102,52 +97,22 @@ export class TrackLevelMeters {
 			return
 		}
 
-		const normalizedVelocity = THREE.MathUtils.clamp(
-			request.velocity,
-			0,
-			1,
-		)
-
-		if (normalizedVelocity >= state.level) {
-			state.level = normalizedVelocity
-			state.peakLevel = normalizedVelocity
-			state.holdRemaining = PEAK_HOLD_SECONDS
-			state.releaseElapsed = 0
-			this.instancesDirty = true
-		}
+		state.trigger(request)
+		this.instancesDirty = true
 	}
 
-	update(deltaSeconds: number): void {
-		if (!this.context.settings.showLevelMeters || deltaSeconds <= 0) {
+	update(songSeconds: number): void {
+		if (
+			!this.context.settings.showLevelMeters ||
+			!Number.isFinite(songSeconds)
+		) {
 			return
 		}
 
-		const safeDeltaSeconds = Math.max(0, deltaSeconds)
 		let changed = this.instancesDirty
 
 		for (const state of this.states.values()) {
-			if (state.level <= 0) {
-				continue
-			}
-
-			let releaseDelta = safeDeltaSeconds
-
-			if (state.holdRemaining > 0) {
-				const heldSeconds = Math.min(state.holdRemaining, releaseDelta)
-				state.holdRemaining -= heldSeconds
-				releaseDelta -= heldSeconds
-			}
-
-			if (releaseDelta > 0) {
-				state.releaseElapsed += releaseDelta
-				const progress = THREE.MathUtils.clamp(
-					state.releaseElapsed / RELEASE_SECONDS,
-					0,
-					1,
-				)
-				state.level = state.peakLevel * (1 - progress)
-				changed = true
-			}
+			changed = state.advanceTo(songSeconds) || changed
 		}
 
 		if (changed) {
@@ -158,10 +123,7 @@ export class TrackLevelMeters {
 
 	clear(): void {
 		for (const state of this.states.values()) {
-			state.level = 0
-			state.peakLevel = 0
-			state.holdRemaining = 0
-			state.releaseElapsed = 0
+			state.clear()
 		}
 
 		this.updateInstances()
@@ -202,12 +164,7 @@ export class TrackLevelMeters {
 		const { lowEnd, mediumEnd } = this.getZoneBoundaries()
 
 		for (const track of layout.tracks) {
-			this.states.set(track.id, {
-				level: 0,
-				peakLevel: 0,
-				holdRemaining: 0,
-				releaseElapsed: 0,
-			})
+			this.states.set(track.id, new LevelMeterEnvelope())
 		}
 
 		this.zones.push(
@@ -378,7 +335,8 @@ export class TrackLevelMeters {
 				}
 
 				const activeSegmentCount = Math.ceil(
-					THREE.MathUtils.clamp(state.level, 0, 1) * TOTAL_SEGMENTS,
+					THREE.MathUtils.clamp(state.currentLevel, 0, 1) *
+						TOTAL_SEGMENTS,
 				)
 
 				for (

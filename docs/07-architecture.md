@@ -241,6 +241,7 @@ Track IDはTrackの同一性、表示Indexは現在の配置を表します。�
 
 - Note On走査位置と前回再生時刻の保持
 - Note On通過時の発音エフェクトとレベルメータのTrigger
+- 同じTick、同じTrackのNote Onを最大Velocityと最終Note Offへ集約
 - 巻き戻り時のCursor、エフェクト、メータReset
 - `NoteImpactEffects`と`TrackLevelMeters`の所有
 
@@ -357,14 +358,19 @@ Track IDはTrackの同一性、表示Indexは現在の配置を表します。�
 
 ### `stage/effects/level-meters.ts`
 
-- TrackごとのVelocity Envelope
 - 20セグメントの点灯状態
-- Holdと一定時間Decay
 - 低・中・高の3つの`InstancedMesh`
 - 感度に応じたZone境界の線形補間
 - 色、Opacity、高さ、幅の即時更新
 - 共通Fog軽減Shader Uniformの更新
-- 専用`LevelMeterTriggerRequest`によるNote On入力
+- 専用`LevelMeterTriggerRequest`によるNote On、Note Off時刻の入力
+
+### `stage/effects/level-meter-envelope.ts`
+
+- TrackごとのVelocity Envelope状態
+- 絶対曲時刻によるPeak HoldとNote Off同期Release
+- 短いノートに対する固定`600ms` Envelope
+- 再発音時のPeak BoostとRelease終点の延長
 
 ### `stage/palette.ts`
 

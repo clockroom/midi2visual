@@ -76,7 +76,8 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 | `src/stage/effects/note-impact-effects.ts` | 4種の発音エフェクトを接続するFacade |
 | `src/stage/effects/note-impact/` | 4種の発音エフェクト生成、Active Effectクラス、Queue |
 | `src/stage/effects/long-note-dissolve.ts` | ロングトーン粒子Burstの生成、拡散、上限管理 |
-| `src/stage/effects/level-meters.ts` | Trackレベルメータの状態、減衰、InstancedMesh描画 |
+| `src/stage/effects/level-meters.ts` | TrackレベルメータのInstancedMesh描画 |
+| `src/stage/effects/level-meter-envelope.ts` | Note Off同期Release、短音固定Release、再発音Boost |
 | `src/stage/core/palette.ts` | ノート、エフェクト、メータで共有するTrack色 |
 | `src/stage/main.ts` | 映像ページの初期化、入力、再生、表示更新 |
 | `src/control/main.ts` | 設定UIの生成、保存、通知 |
@@ -147,7 +148,8 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - 1ノート最大粒子数を増減すると、長い粒子化範囲の密度が変わる
 - 粒子サイズを変更すると、カメラとの距離によらず画面上の大きさが変わる
 - カスタム画像が発音時にTrack色で合成され、フェードしながら拡大または縮小する
-- TrackレベルメータがNote Onへ反応し、ロングトーンでも一定時間で減衰する
+- TrackレベルメータがNote Onへ反応し、ロングトーンではNote Offへ向けて減衰する
+- 短いノートでは固定`600ms` Envelopeを維持し、再発音時はLevelが視認できる幅で上昇する
 - Trackの4種類の並び順と反転が即時反映され、再生位置とカメラ状態が維持される
 - レベルメータの表示、色、感度、不透明度、高さ、幅、奥行き位置設定が即時反映される
 - 再生、停止、プリロール、ポストロールが機能する

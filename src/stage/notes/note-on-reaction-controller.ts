@@ -1,7 +1,10 @@
 import * as THREE from 'three'
 import type { MidiModel, VisualNote } from '../../shared/types'
 import type { StageLayout } from '../core/stage-layout'
-import { TrackLevelMeters } from '../effects/level-meters'
+import {
+	type LevelMeterTriggerRequest,
+	TrackLevelMeters,
+} from '../effects/level-meters'
 import { NoteImpactEffects } from '../effects/note-impact-effects'
 import type { StageContext } from '../stage-context'
 
@@ -54,7 +57,7 @@ export class NoteOnReactionController {
 		this.triggerNotesThrough(songSeconds)
 		const deltaSeconds = songSeconds - this.previousSongSeconds
 		this.impactEffects.update(deltaSeconds)
-		this.levelMeters.update(deltaSeconds)
+		this.levelMeters.update(songSeconds)
 		this.previousSongSeconds = songSeconds
 	}
 
@@ -86,21 +89,58 @@ export class NoteOnReactionController {
 		}
 
 		while (this.nextNoteIndex < this.model.notes.length) {
-			const note = this.model.notes[this.nextNoteIndex]
+			const firstNote = this.model.notes[this.nextNoteIndex]
 
-			if (note.startSeconds > songSeconds) {
+			if (firstNote.startSeconds > songSeconds) {
 				break
 			}
 
-			if (note.startSeconds > (this.previousSongSeconds ?? songSeconds)) {
-				this.triggerNote(note)
-			}
+			const simultaneousNotes = this.takeNotesAtTick(firstNote.startTicks)
 
-			this.nextNoteIndex += 1
+			if (
+				firstNote.startSeconds >
+				(this.previousSongSeconds ?? songSeconds)
+			) {
+				this.triggerSimultaneousNotes(simultaneousNotes)
+			}
 		}
 	}
 
-	private triggerNote(note: VisualNote): void {
+	private takeNotesAtTick(startTicks: number): VisualNote[] {
+		if (!this.model) {
+			return []
+		}
+
+		const notes: VisualNote[] = []
+
+		while (
+			this.nextNoteIndex < this.model.notes.length &&
+			this.model.notes[this.nextNoteIndex].startTicks === startTicks
+		) {
+			notes.push(this.model.notes[this.nextNoteIndex])
+			this.nextNoteIndex += 1
+		}
+
+		return notes
+	}
+
+	private triggerSimultaneousNotes(notes: VisualNote[]): void {
+		const meterRequests = new Map<
+			VisualNote['trackId'],
+			LevelMeterTriggerRequest
+		>()
+
+		for (const note of notes) {
+			this.triggerNoteImpact(note)
+			this.collectLevelMeterRequest(meterRequests, note)
+		}
+
+		for (const request of meterRequests.values()) {
+			this.levelMeters.trigger(request)
+		}
+	}
+
+	private triggerNoteImpact(note: VisualNote): void {
 		if (!this.layout) {
 			return
 		}
@@ -112,10 +152,29 @@ export class NoteOnReactionController {
 			color,
 			velocity: note.velocity,
 		})
-		this.levelMeters.trigger({
-			trackId: note.trackId,
-			velocity: note.velocity,
-		})
+	}
+
+	private collectLevelMeterRequest(
+		requests: Map<VisualNote['trackId'], LevelMeterTriggerRequest>,
+		note: VisualNote,
+	): void {
+		const current = requests.get(note.trackId)
+
+		if (!current) {
+			requests.set(note.trackId, {
+				trackId: note.trackId,
+				velocity: note.velocity,
+				noteOnSeconds: note.startSeconds,
+				noteOffSeconds: note.endSeconds,
+			})
+			return
+		}
+
+		current.velocity = Math.max(current.velocity, note.velocity)
+		current.noteOffSeconds = Math.max(
+			current.noteOffSeconds,
+			note.endSeconds,
+		)
 	}
 
 	private configureLevelMeters(): void {
