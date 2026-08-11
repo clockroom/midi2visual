@@ -129,7 +129,7 @@ Three.jsへ依存しません。
 
 ### `shared/tracks.ts`
 
-- `VisualTrack`によるTrack ID、元SMF Index、名前、ノート、派生値の保持
+- `VisualTrack`によるTrack ID、入力SMF Index、名前、ノート、派生値の保持
 - `TrackCollection`によるTrack ID検索と現在の表示順管理
 - `applyOrder()`による並び順計算と適用の一元管理
 - 算出されたTrack IDが全Trackを過不足なく含むことの検証
@@ -337,7 +337,7 @@ Track IDはTrackの同一性、表示Indexは現在の配置を表します。�
 
 - 設定された`public`直下画像の非同期読み込みと世代管理
 - ファイル名を読み込み境界で`shared/public-files.ts`の共通Utilityにより検証
-- 同一位置の旧画像破棄とAlpha Blend Plane生成
+- 同一位置に先に表示した画像の破棄とAlpha Blend Plane生成
 
 ### `stage/effects/note-impact/materials.ts` / `texture.ts` / `types.ts`
 
@@ -459,8 +459,8 @@ sequenceDiagram
 
 ## Resource管理
 
-- 設定変更で再構築するGroupは、既存GeometryとMaterialをDisposeする。
-- 背景Textureを更新するときは旧TextureをDisposeする。
+- 設定変更でGroupを再構築するときは、置き換えるGeometryとMaterialをDisposeする。
+- 背景Textureを更新するときは、置き換えるTextureをDisposeする。
 - 発音エフェクト終了時は個別MaterialをDisposeし、共有GeometryとTextureは管理クラス終了時にDisposeする。
 - Trackレベルメータは共有Geometryと3つのInstancedMeshを終了時にDisposeする。
 - ページ終了時にScene ResourceとRendererをDisposeする。

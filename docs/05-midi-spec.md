@@ -47,7 +47,7 @@ TempoとTime Signatureは描画する演奏イベントではないが、秒変�
 
 - ノートを1つ以上含むTrackだけを表示対象とする。
 - 空Trackとメタイベント専用Trackは除外する。
-- Track IDには元SMF内のTrack Indexを使用し、空Trackを除外しても再採番しない。
+- Track IDには入力SMF内のTrack Indexを使用し、空Trackを除外しても再採番しない。
 - 初期表示順はノートを含むTrackのSMF内順序とする。
 - 表示順はMIDIトラック、音長、音程、スマートの4種類から設定でき、反転もできる。
 - 任意のTrackを個別に移動する機能は持たない。
@@ -107,7 +107,7 @@ interface VisualNote {
 
 正規化後の配列は`startSeconds`順へ並べる。描画側はMIDIイベントの対応付けを行わない。
 
-`MidiModel`には元SMFの`ppq`と、先頭Time Signatureから算出した`beatTicks`も保持する。Tempo Markerは`seconds`、`ticks`、`bpm`を保持し、ロングトーンFadeで現在時刻をTickへ逆変換するために使用する。
+`MidiModel`には入力SMFの`ppq`と、先頭Time Signatureから算出した`beatTicks`も保持する。Tempo Markerは`seconds`、`ticks`、`bpm`を保持し、ロングトーンFadeで現在時刻をTickへ逆変換するために使用する。
 
 ## 曲長
 

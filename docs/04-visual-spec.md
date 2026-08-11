@@ -82,14 +82,14 @@
 - 粒子化後はFade終了まで、粒子をXY方向へ大きく、Z方向へ控えめに拡散する。
 - 粒子は加算合成とし、Scene Fogの影響を受けない。
 - 粒子のOpacityとSizeをFade終了へ向けて減衰する。
-- 粒子Sizeは距離減衰しないScreen Space基準とし、`longNoteDissolveParticleSize`で設定する。初期値は現在の見た目に相当する`10px`とする。
+- 粒子Sizeは距離減衰しないScreen Space基準とし、`longNoteDissolveParticleSize`で設定する。初期値は`10px`とする。
 - 粒子化対象範囲は発音平面より手前も含める。
 - 粒子はノート断面内でX・Y位置をわずかに散らす。
 - 1Burstを単一の`THREE.Points`として描画する。
 
 ## Note Onエフェクト
 
-既存のノート本体とGlowは維持し、Note Onが発音平面を通過した瞬間に独立した一過性エフェクトを生成します。
+ノート本体とGlowとは別に、Note Onが発音平面を通過した瞬間に独立した一過性エフェクトを生成します。
 
 | 種類 | Texture | 表現 |
 |---|---|---|

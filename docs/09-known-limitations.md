@@ -62,8 +62,8 @@
 - 設定PresetのImport / Exportはありません。
 - 曲ごとの設定ファイルはありません。
 - 設定のSchema Validationは最小限です。
-- `localStorage`の古い値が型として不正でも、ObjectであればShallow Mergeされます。
-- `showMeasureCounter`という内部名は旧仕様由来ですが、現在はBPMと拍数カウンターの表示を制御します。
+- `localStorage`の保存値が型として不正でも、ObjectであればShallow Mergeされます。
+- `showMeasureCounter`という内部名は拍数カウンターだけを示すように見えますが、BPMと拍数カウンターの両方を制御します。
 
 ## 入力
 

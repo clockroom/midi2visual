@@ -90,7 +90,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 
 - 描画コードからMIDIライブラリのオブジェクトを直接参照しません。
 - `src/shared/midi.ts`で`MidiModel`へ正規化してから描画へ渡します。
-- `VisualTrack.id`は元SMF内のTrack Indexであり、空Trackを除外しても再採番しません。
+- `VisualTrack.id`は入力SMF内のTrack Indexであり、空Trackを除外しても再採番しません。
 - `TrackCollection`が現在の表示順を管理し、ノートとLevel MeterはTrack IDへ紐付けます。
 - Track色はTrack固有ではなく表示位置へ割り当てるため、並べ替えても画面上の色順は変わりません。
 - `VisualTrack`は最長ノートのTick数と全ノートの平均Pitchを保持します。
@@ -108,7 +108,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 
 - 初期値を追加・変更するときは`AppSettings`、`defaultSettings`、設定UI、[`06-settings-spec.md`](06-settings-spec.md)を同時に更新します。
 - 保存済み値は初期値へマージされるため、新規キーは初期値で補完されます。
-- `showMeasureCounter`は現在BPMと拍数カウンターの表示フラグです。名称は旧仕様由来です。
+- `showMeasureCounter`はBPMと拍数カウンターをまとめて表示するフラグです。内部名は拍数カウンターだけを示すように見えますが、BPM表示も同時に制御します。
 - MIDIとカスタム画像のファイル名も設定として永続化します。
 - 組み込み画像は`public/assets`、ユーザーが差し替えるファイルは`public`直下に置きます。
 - Stage側では`StageContext`を設定の正本とし、各描画クラスが同じInstanceを参照します。
@@ -121,7 +121,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - 注視点は発音平面中央です。
 - カメラ位置は永続化しません。
 
-## 変更後の確認項目
+## 動作確認項目
 
 - `docker compose run --rm npm run build`
 - Firefoxで`index.html`が表示される
@@ -135,7 +135,7 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - 拡散リングが即時と約`0.12秒`後に表示され、2枚目だけ大きな終了サイズまで広がる
 - 停止中は待機中の2枚目リングの遅延時間が進まない
 - ベロシティ強調、強調特性、強調閾値を変更すると、次のNote Onからリング、スパーク、カスタム画像の強度が変わる
-- 初期値`100% / 50% / 50%`では従来と同じVelocityになる
+- 初期値`100% / 50% / 50%`ではVelocityを変換しない
 - 遠方視認性を上げると、近距離表示を白飛びさせずに遠方のノートとレベルメータが見やすくなる
 - Note Onエフェクト4種は遠方視認性にかかわらずFogの影響を受けない
 - ノート基本発光を変更すると、未発音・発音中・残光中の最低発光量が変わる
