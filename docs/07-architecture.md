@@ -369,7 +369,7 @@ Track IDはTrackの同一性、表示Indexは現在の配置を表します。�
 
 - TrackごとのVelocity Envelope状態
 - 絶対曲時刻によるPeak HoldとNote Off同期Release
-- 短いノートに対する固定`600ms` Envelope
+- 短いノートに対する固定`300ms` Envelope
 - 再発音時のPeak更新とRelease終点の延長
 
 ### `stage/palette.ts`

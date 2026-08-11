@@ -5,7 +5,7 @@ export interface LevelMeterEnvelopeTriggerRequest {
 }
 
 const PEAK_HOLD_SECONDS = 0.08
-const FIXED_RELEASE_SECONDS = 0.52
+const FIXED_RELEASE_SECONDS = 0.22
 const SHORT_NOTE_ENVELOPE_SECONDS =
 	PEAK_HOLD_SECONDS + FIXED_RELEASE_SECONDS
 

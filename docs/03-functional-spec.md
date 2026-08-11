@@ -180,7 +180,7 @@
 - Note OnのVelocityを正規化した値で、下から点灯するセグメント数を決定する。
 - 同じTickで同じTrackに複数のNote Onがある場合は、最大Velocityと最も遅いNote Offを使用する。
 - Note Onで即座にPeakへ上昇し、`80ms`保持した後、Note Offでゼロになるよう線形減衰する。
-- Note長が`600ms`未満の場合は、Note Onから`80ms`保持し、`520ms`で線形減衰する。
+- Note長が`300ms`未満の場合は、Note Onから`80ms`保持し、`220ms`で線形減衰する。
 - 減衰中の再発音では、`max(新しいVelocity, 現在Level)`を次のPeakとする。
 - 再発音の有効な終了時刻が現在の終了時刻より後なら延長し、前なら現在の終了時刻を維持する。
 - Envelopeはフレーム間の差分時間ではなく、SMFの絶対曲時刻で更新する。

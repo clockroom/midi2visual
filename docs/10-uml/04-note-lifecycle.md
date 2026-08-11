@@ -40,7 +40,7 @@ stateDiagram-v2
 	Release --> PeakHold: 再発音 / Peakと終点を再評価
 
 	note right of Release
-		短音: Note Onから600msで終了
+		短音: Note Onから300msで終了
 		長音: Note Offで終了
 		後のNote Offだけが終点を延長
 	end note
