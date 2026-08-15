@@ -43,6 +43,8 @@ PCの詳細設定では、ノートを左列の2行へSpanし、右列へエフ�
 
 ## 設定項目
 
+設定名と設定キーに含まれる「拍」または`Beats`は、拍子にかかわらず四分音符1つ分を意味します。
+
 | キー | 初期値 | UI範囲 | 意味 |
 |---|---:|---:|---|
 | `midiFileName` | `input.mid` | Text | `public`直下から読むSMF名。拡張子省略時は`.mid` |
@@ -52,7 +54,7 @@ PCの詳細設定では、ノートを左列の2行へSpanし、右列へエフ�
 | `timeUnitsPerSecond` | `4` | `1〜10`, step `0.1` | 1秒あたりのZ方向world unit |
 | `trackSpacing` | `1.5` | `0.6〜4`, step `0.05` | Track列のX間隔 |
 | `trackOrderMode` | `midi` | Select | `midi`, `duration`, `pitch`, `smart`からTrackの自動並び順を選ぶ |
-| `smartTrackDurationBeats` | `8` | `1〜16`, step `1` | スマート順で長音Trackを分ける閾値拍数。閾値と同じ長さは閾値以下Group |
+| `smartTrackDurationBeats` | `8` | `1〜16`, step `1` | スマート順で長音Trackを分ける四分音符単位の閾値。閾値と同じ長さは閾値以下Group |
 | `reverseTrackOrder` | `false` | ON/OFF | 自動並び順の最終結果を逆順にする |
 | `noteSize` | `0.4` | `0.05〜1.5`, step `0.01` | 正方形ノート断面の一辺 |
 | `noteOpacity` | `0.82` | `0.1〜1`, step `0.01` | 発音前ノートの基本Opacity |
@@ -61,8 +63,8 @@ PCの詳細設定では、ノートを左列の2行へSpanし、右列へエフ�
 | `noteGlowIntensity` | `1.7` | `0〜4`, step `0.05` | 発音中と残光のEmissive倍率 |
 | `noteAfterglowSeconds` | `0.3` | `0.05〜2`, step `0.05` | Note Off後の残光時間 |
 | `longNoteFadeEnabled` | `true` | ON/OFF | 長いノートをNote Off前にFadeする |
-| `longNoteFadeStartBeats` | `2` | `1〜32`, step `0.5` | Note OnからFade開始までの拍数 |
-| `longNoteFadeDurationBeats` | `6` | `0.5〜64`, step `0.5` | Fade開始から完全消失までの拍数 |
+| `longNoteFadeStartBeats` | `2` | `1〜32`, step `0.5` | Note OnからFade開始までの四分音符数 |
+| `longNoteFadeDurationBeats` | `6` | `0.5〜64`, step `0.5` | Fade開始から完全消失までの四分音符数 |
 | `showLongNoteDissolve` | `true` | ON/OFF | 実Fade区間内でバーを粒子へ置換する |
 | `longNoteDissolveTimingPercent` | `50` | `10〜90`, step `5` | 実Fade区間内の粒子化タイミング |
 | `longNoteDissolvePreFlashSeconds` | `0.15` | `0〜0.5`, step `0.05` | 粒子化前に発光を強める時間。`0`で無効 |

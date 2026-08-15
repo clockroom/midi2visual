@@ -85,6 +85,7 @@ export interface MidiModel {
 	durationSeconds: number
 	durationTicks: number
 	ppq: number
+	/** 四分音符1つ分のtick数。拍子の分母には依存しない。 */
 	beatTicks: number
 	numerator: number
 	denominator: number

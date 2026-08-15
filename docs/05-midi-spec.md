@@ -29,6 +29,14 @@ Note On Velocity=`0`のNote Off相当処理はMIDIパーサーへ委ねる。
 
 TempoとTime Signatureは描画する演奏イベントではないが、秒変換、小節枠、拍数カウンターに必要です。
 
+## 拍の定義
+
+- 設定値と演出計算における1拍は、拍子にかかわらず四分音符1つ分とする。
+- PPQベースでは`beatTicks = PPQ`とする。
+- 小節枠、拍枠、拍数カウンターなど譜面構造を表す機能に限り、拍子の分母音符1つ分を`musicalBeat`とする。
+- `musicalBeatTicks = PPQ × (4 / denominator)`とする。
+- Source上で`Beats`または`beatTicks`とだけ表記する場合は、四分音符固定の拍を意味する。
+
 ## 無視する情報
 
 - MIDI Channelによる列分割
@@ -107,7 +115,7 @@ interface VisualNote {
 
 正規化後の配列は`startSeconds`順へ並べる。描画側はMIDIイベントの対応付けを行わない。
 
-`MidiModel`には入力SMFの`ppq`と、先頭Time Signatureから算出した`beatTicks`も保持する。Tempo Markerは`seconds`、`ticks`、`bpm`を保持し、ロングトーンFadeで現在時刻をTickへ逆変換するために使用する。
+`MidiModel`には入力SMFの`ppq`と、同じ値を四分音符固定の拍として表す`beatTicks`も保持する。Tempo Markerは`seconds`、`ticks`、`bpm`を保持し、ロングトーンFadeで現在時刻をTickへ逆変換するために使用する。
 
 ## 曲長
 
@@ -127,15 +135,16 @@ interface VisualNote {
 - Time Signatureイベントをtick順へ並べる。
 - tick=`0`にイベントがない場合は`4/4`を補う。
 - 同じtickに複数のイベントがある場合は最後のイベントを使用する。
-- 先頭Time Signatureは拍枠、拍数カウンター、ロングトーンFade、Smart音長の拍単位計算に使用する。
+- 先頭Time Signatureは拍枠と拍数カウンターの`musicalBeat`計算に使用する。
 - 途中のTime Signature変更は小節枠の境界計算だけへ反映する。
 - 曲途中の拍子変更は分子だけが変わり、分母は変わらないSMFを対象とする。
 
-小節と拍のtick数は次の式で計算する。
+通常の拍、小節、譜面上の拍のtick数は次の式で計算する。
 
 ```text
+beatTicks = PPQ
+musicalBeatTicks = PPQ × (4 / denominator)
 measureTicks = PPQ × numerator × (4 / denominator)
-beatTicks = PPQ × (4 / denominator)
 ```
 
 ## 小節境界
@@ -154,6 +163,7 @@ beatTicks = PPQ × (4 / denominator)
 ### 描画用拍境界
 
 - 先頭Time Signatureを曲全体へ適用する。
+- 1拍は`musicalBeatTicks`とする。
 - 各小節内の小節頭以外を生成する。
 - 拍枠をONにした場合だけ描画する。
 - 小節頭は小節枠が担うため重複させない。
@@ -161,6 +171,7 @@ beatTicks = PPQ × (4 / denominator)
 ### カウンター用拍Timeline
 
 - 先頭Time Signatureを曲全体へ適用する。
+- 1拍は`musicalBeatTicks`とする。
 - tick=`0`から総拍数分を生成する。
 - 総拍数は`totalMeasures × numerator`とする。
 - 現在時刻以下で最後のMarkerを二分探索し、現在拍を求める。

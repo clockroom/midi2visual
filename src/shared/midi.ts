@@ -71,8 +71,9 @@ export async function loadMidiModel(fileName: string): Promise<MidiModel> {
 		durationTicks,
 	)
 	const { numerator, denominator } = timeSignatures[0]
-	const measureTicks = midi.header.ppq * numerator * (4 / denominator)
-	const beatTicks = midi.header.ppq * (4 / denominator)
+	const beatTicks = midi.header.ppq
+	const musicalBeatTicks = midi.header.ppq * (4 / denominator)
+	const measureTicks = musicalBeatTicks * numerator
 	const totalMeasures = Math.max(1, Math.ceil(durationTicks / measureTicks))
 	const totalBeats = totalMeasures * numerator
 	const measureMarkers = createMeasureMarkers(
@@ -90,7 +91,9 @@ export async function loadMidiModel(fileName: string): Promise<MidiModel> {
 		}
 
 		for (let beat = 1; beat < numerator; beat += 1) {
-			const beatTick = Math.round(measure * measureTicks + beat * beatTicks)
+			const beatTick = Math.round(
+				measure * measureTicks + beat * musicalBeatTicks,
+			)
 			beatMarkers.push({
 				seconds: midi.header.ticksToSeconds(beatTick),
 				ticks: beatTick,
@@ -100,7 +103,7 @@ export async function loadMidiModel(fileName: string): Promise<MidiModel> {
 	}
 
 	for (let beat = 0; beat < totalBeats; beat += 1) {
-		const ticks = Math.round(beat * beatTicks)
+		const ticks = Math.round(beat * musicalBeatTicks)
 		beatTimeline.push({
 			seconds: midi.header.ticksToSeconds(ticks),
 			ticks,
