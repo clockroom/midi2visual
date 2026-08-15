@@ -8,7 +8,8 @@
 
 ## MIDI
 
-- 途中の拍子変更は非対応です。
+- 途中の拍子変更は小節枠だけへ反映します。拍枠、拍数カウンター、ロングトーンFade、Smart音長は先頭拍子を使用します。
+- 曲途中の拍子の分母変更は対応対象外です。
 - SMPTE Time Divisionは保証しません。
 - Sustain Pedalを含むCCを描画へ反映しません。
 - Pitch Bend、Aftertouch、Program Change、SysExを描画へ反映しません。
@@ -82,7 +83,7 @@
 - 曲ごとのPreset
 - Track表示切り替えと自由並べ替え
 - CC、Expression、Pitch Bend連動演出
-- 拍子変更対応
+- 拍子変更後の拍枠、拍数カウンター、拍単位設定への反映
 - Markerによるセクション演出
 - Post Processing Bloom
 - 背景テーマとカメラPreset

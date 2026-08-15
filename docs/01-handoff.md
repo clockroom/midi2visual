@@ -9,7 +9,7 @@ midi2visualは、DTM成果の公開動画を作るための、音声を再生し
 現在のMVPは次の機能を実装済みです。
 
 - SMF Format 0 / 1の読み込み
-- Note On / Off、Velocity、Tempo、PPQ、先頭Time Signatureの利用
+- Note On / Off、Velocity、Tempo、PPQ、Time Signatureの利用
 - Track、Pitch、Timeを3軸へ割り当てたThree.js描画
 - MIDI順、音長順、音程順、スマート順と反転によるTrack自動並べ替え
 - ノートの発光と残光
@@ -96,7 +96,9 @@ Dockerを含む詳しい起動手順は[`../README.md`](../README.md)を参照�
 - `VisualTrack`は最長ノートのTick数と全ノートの平均Pitchを保持します。
 - Track順は`TrackCollection.applyOrder()`が管理し、内部の`TrackOrderer`へ順序計算だけを委譲します。自由な個別移動は行いません。
 - Tempo変更は対応済みです。
-- 途中の拍子変更は非対応です。先頭拍子を曲全体へ適用します。
+- 途中で拍子の分子が変わる場合、小節枠だけ変更後の拍子へ追従します。
+- 拍枠、拍数カウンター、ロングトーンFade、Smart音長は先頭拍子を使用します。
+- 曲途中の拍子の分母変更は対応対象外です。
 
 ### 再生時刻
 

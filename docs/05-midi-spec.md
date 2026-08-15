@@ -25,7 +25,7 @@ Note On Velocity=`0`のNote Off相当処理はMIDIパーサーへ委ねる。
 
 - PPQ
 - Tempo
-- 先頭Time Signature
+- Time Signature。途中の変更は小節枠だけへ反映する
 
 TempoとTime Signatureは描画する演奏イベントではないが、秒変換、小節枠、拍数カウンターに必要です。
 
@@ -124,9 +124,12 @@ interface VisualNote {
 
 ## Time Signature
 
-- Time Signatureイベントをtick順へ並べ、最初の1件だけを使用する。
-- イベントがない場合は`4/4`とする。
-- 途中の拍子変更は非対応とする。
+- Time Signatureイベントをtick順へ並べる。
+- tick=`0`にイベントがない場合は`4/4`を補う。
+- 同じtickに複数のイベントがある場合は最後のイベントを使用する。
+- 先頭Time Signatureは拍枠、拍数カウンター、ロングトーンFade、Smart音長の拍単位計算に使用する。
+- 途中のTime Signature変更は小節枠の境界計算だけへ反映する。
+- 曲途中の拍子変更は分子だけが変わり、分母は変わらないSMFを対象とする。
 
 小節と拍のtick数は次の式で計算する。
 
@@ -137,8 +140,10 @@ beatTicks = PPQ × (4 / denominator)
 
 ## 小節境界
 
-- `durationTicks / measureTicks`を切り上げて総小節数とする。
-- tick=`0`から総小節数の末尾境界までMarkerを生成する。
+- Time Signatureイベントのtickを変更後の拍子の小節頭として扱う。
+- 各Time Signature区間で、その区間の拍子から小節長を計算する。
+- 次のTime Signatureイベントより前まで、各小節頭のMarkerを生成する。
+- 最後の区間では、曲末を含む小節の末尾境界までMarkerを生成する。
 - 各tickは`header.ticksToSeconds()`で秒へ変換する。
 - Tempo変更があっても小節枠の実時間位置を正しくする。
 
@@ -148,12 +153,14 @@ beatTicks = PPQ × (4 / denominator)
 
 ### 描画用拍境界
 
+- 先頭Time Signatureを曲全体へ適用する。
 - 各小節内の小節頭以外を生成する。
 - 拍枠をONにした場合だけ描画する。
 - 小節頭は小節枠が担うため重複させない。
 
 ### カウンター用拍Timeline
 
+- 先頭Time Signatureを曲全体へ適用する。
 - tick=`0`から総拍数分を生成する。
 - 総拍数は`totalMeasures × numerator`とする。
 - 現在時刻以下で最後のMarkerを二分探索し、現在拍を求める。
