@@ -140,7 +140,7 @@ Track IDはTrackの同一性、表示Indexは現在の配置を表します。�
 ### `shared/track-order.ts`
 
 - MIDIトラック、音長、音程、スマートのComparator選択
-- 8拍超と8拍以下を分けるスマート順の生成
+- 設定されたスマート音長を超えるGroupと閾値以下のGroupを分けるスマート順の生成
 - 最終順序の反転
 - 並び順を表すTrack ID配列の算出
 

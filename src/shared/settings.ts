@@ -11,6 +11,7 @@ export const defaultSettings: AppSettings = {
 	timeUnitsPerSecond: 4,
 	trackSpacing: 1.5,
 	trackOrderMode: 'midi',
+	smartTrackDurationBeats: 8,
 	reverseTrackOrder: false,
 	noteSize: 0.4,
 	noteOpacity: 0.82,

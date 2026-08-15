@@ -197,7 +197,10 @@ export class NoteLayer {
 			previous.timeUnitsPerSecond !== current.timeUnitsPerSecond ||
 			previous.trackSpacing !== current.trackSpacing ||
 			previous.trackOrderMode !== current.trackOrderMode ||
-			previous.reverseTrackOrder !== current.reverseTrackOrder
+			previous.reverseTrackOrder !== current.reverseTrackOrder ||
+			(current.trackOrderMode === 'smart' &&
+				previous.smartTrackDurationBeats !==
+					current.smartTrackDurationBeats)
 		)
 	}
 }

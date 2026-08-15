@@ -9,6 +9,7 @@ export interface AppSettings {
 	timeUnitsPerSecond: number
 	trackSpacing: number
 	trackOrderMode: TrackOrderMode
+	smartTrackDurationBeats: number
 	reverseTrackOrder: boolean
 	noteSize: number
 	noteOpacity: number

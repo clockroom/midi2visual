@@ -33,6 +33,8 @@
 
 HTMLと狭幅表示では、常用カテゴリーをファイル、トラック、ロングトーンエフェクト、カスタムエフェクト、レベルメータの順にします。PCでは左列へファイルとトラックを縦に並べ、右列のロングトーンエフェクトを2行Spanします。3行目はレベルメータとカスタムエフェクトを横並びにします。
 
+トラックカテゴリーでは、先頭にTrack列の間隔を配置し、その後に並び順、反転、スマート音長を配置します。スマート音長は並び順にかかわらず常時表示します。
+
 PCの詳細設定では、ノートを左列の2行へSpanし、右列へエフェクトとガイドを縦に配置します。3行目はカメラと再生です。同じGrid行のカードは行の高さへ合わせて伸長します。
 
 詳細設定の開閉状態は保存しません。カテゴリー再編そのものは設定値へ影響しません。
@@ -50,6 +52,7 @@ PCの詳細設定では、ノートを左列の2行へSpanし、右列へエフ�
 | `timeUnitsPerSecond` | `4` | `1〜10`, step `0.1` | 1秒あたりのZ方向world unit |
 | `trackSpacing` | `1.5` | `0.6〜4`, step `0.05` | Track列のX間隔 |
 | `trackOrderMode` | `midi` | Select | `midi`, `duration`, `pitch`, `smart`からTrackの自動並び順を選ぶ |
+| `smartTrackDurationBeats` | `8` | `1〜16`, step `1` | スマート順で長音Trackを分ける閾値拍数。閾値と同じ長さは閾値以下Group |
 | `reverseTrackOrder` | `false` | ON/OFF | 自動並び順の最終結果を逆順にする |
 | `noteSize` | `0.4` | `0.05〜1.5`, step `0.01` | 正方形ノート断面の一辺 |
 | `noteOpacity` | `0.82` | `0.1〜1`, step `0.01` | 発音前ノートの基本Opacity |
@@ -109,6 +112,7 @@ PCの詳細設定では、ノートを左列の2行へSpanし、右列へエフ�
 - `timeUnitsPerSecond`
 - `trackSpacing`
 - `trackOrderMode`
+- `smartTrackDurationBeats`（`trackOrderMode`が`smart`の場合）
 - `reverseTrackOrder`
 
 ### 枠を再構築する設定
@@ -136,6 +140,7 @@ PCの詳細設定では、ノートを左列の2行へSpanし、右列へエフ�
 - 感度変更時はZoneごとのInstance数が変わるため、3つのInstancedMeshを再構築する。
 - レベルメータをOFFにした場合は全Trackの状態をゼロへ戻す。
 - Trackの並び順変更時は再生位置とカメラを維持し、ノート、Active発音エフェクト、ロングトーン粒子、レベルメータ状態を新しい配置へ再構成する。
+- スマート音長の変更は、並び順が`smart`の場合だけTrackの並び順と描画Objectを再構成する。
 
 ## 保存値の読み込み
 

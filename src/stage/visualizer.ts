@@ -168,6 +168,7 @@ export class MidiVisualizer {
 			mode: settings.trackOrderMode,
 			reversed: settings.reverseTrackOrder,
 			beatTicks: model.beatTicks,
+			smartDurationBeats: settings.smartTrackDurationBeats,
 		})
 	}
 
@@ -177,7 +178,10 @@ export class MidiVisualizer {
 	}: StageSettingsChange): boolean {
 		return (
 			previous.trackOrderMode !== current.trackOrderMode ||
-			previous.reverseTrackOrder !== current.reverseTrackOrder
+			previous.reverseTrackOrder !== current.reverseTrackOrder ||
+			(current.trackOrderMode === 'smart' &&
+				previous.smartTrackDurationBeats !==
+					current.smartTrackDurationBeats)
 		)
 	}
 }

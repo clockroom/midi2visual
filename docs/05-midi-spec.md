@@ -82,11 +82,11 @@ class VisualTrack {
 | 音長 | 最大発音時間の長い順 | 平均Pitchの高い順 |
 | 音程 | 平均Pitchの高い順 | 最大発音時間の長い順 |
 
-スマートは`maxNoteDurationTicks > beatTicks × 8`を8拍超Groupとする。ちょうど8拍は8拍以下Groupに含める。
+スマートは`maxNoteDurationTicks > beatTicks × smartTrackDurationBeats`を閾値超Groupとする。ちょうど閾値と同じ長さのノートは閾値以下Groupに含める。
 
-- 8拍超Groupを8拍以下Groupより先へ置く。
-- 8拍超Groupは音長順を使用する。
-- 8拍以下Groupは音程順を使用する。
+- 閾値超Groupを閾値以下Groupより先へ置く。
+- 閾値超Groupは音長順を使用する。
+- 閾値以下Groupは音程順を使用する。
 - 反転設定は上記で確定した配列全体へ最後に適用する。
 
 ## ノートの正規化

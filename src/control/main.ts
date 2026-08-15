@@ -62,6 +62,7 @@ const groups: Record<string, SettingDefinition[]> = {
 		},
 	],
 	'track-settings': [
+		{ kind: 'number', key: 'trackSpacing', label: 'トラック間隔', min: 0.6, max: 4, step: 0.05 },
 		{
 			kind: 'select',
 			key: 'trackOrderMode',
@@ -77,6 +78,14 @@ const groups: Record<string, SettingDefinition[]> = {
 			kind: 'boolean',
 			key: 'reverseTrackOrder',
 			label: '並び順を反転',
+		},
+		{
+			kind: 'number',
+			key: 'smartTrackDurationBeats',
+			label: 'スマート音長 (拍)',
+			min: 1,
+			max: 16,
+			step: 1,
 		},
 	],
 	'time-settings': [
@@ -154,7 +163,6 @@ const groups: Record<string, SettingDefinition[]> = {
 		{ kind: 'number', key: 'levelMeterDepthOffset', label: '奥行き位置', min: 0, max: 40, step: 0.5 },
 	],
 	'space-settings': [
-		{ kind: 'number', key: 'trackSpacing', label: 'トラック間隔', min: 0.6, max: 4, step: 0.05 },
 		{ kind: 'number', key: 'cameraFov', label: 'カメラ視野角', min: 25, max: 80, step: 1 },
 		{ kind: 'number', key: 'distanceVisibility', label: '遠方視認性', min: 0, max: 1, step: 0.05 },
 		{ kind: 'color', key: 'backgroundTopColor', label: '背景上部色' },

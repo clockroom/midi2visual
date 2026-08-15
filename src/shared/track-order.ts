@@ -6,6 +6,7 @@ export interface TrackOrderRequest {
 	mode: TrackOrderMode
 	reversed: boolean
 	beatTicks: number
+	smartDurationBeats: number
 }
 
 type TrackComparator = (left: VisualTrack, right: VisualTrack) => number
@@ -30,6 +31,7 @@ export class TrackOrderer {
 	private getComparator({
 		mode,
 		beatTicks,
+		smartDurationBeats,
 	}: TrackOrderRequest): TrackComparator {
 		switch (mode) {
 			case 'duration':
@@ -37,7 +39,10 @@ export class TrackOrderer {
 			case 'pitch':
 				return this.compareByPitch
 			case 'smart':
-				return this.createSmartComparator(beatTicks)
+				return this.createSmartComparator(
+					beatTicks,
+					smartDurationBeats,
+				)
 			case 'midi':
 			default:
 				return this.compareBySourceIndex
@@ -71,8 +76,11 @@ export class TrackOrderer {
 		) ||
 		this.compareBySourceIndex(left, right)
 
-	private createSmartComparator(beatTicks: number): TrackComparator {
-		const longNoteThresholdTicks = beatTicks * 8
+	private createSmartComparator(
+		beatTicks: number,
+		smartDurationBeats: number,
+	): TrackComparator {
+		const longNoteThresholdTicks = beatTicks * smartDurationBeats
 
 		return (left, right) => {
 			const leftHasLongNote =
